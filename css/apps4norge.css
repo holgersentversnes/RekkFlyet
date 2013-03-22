@@ -1,0 +1,14 @@
+table.flightSearchResultElement {
+    width:100%;
+}
+
+.flightSearchResultElement td {
+    text-align: center;
+}
+.flightSearchResultElement td:first-child {
+    text-align: left;
+}
+
+.flightSearchResultElement td:last-child {
+    text-align:  right;
+}
