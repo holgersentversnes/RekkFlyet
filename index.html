@@ -29,30 +29,24 @@
         <script type="text/javascript" src="../cordova-2.5.0.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript" src="js/coffee/UrlBuilder.js"></script>
-        <script type="text/javascript" src="js/coffee/Flight.js"></script>
-        <script type="text/javascript" src="js/coffee/FlightFactory.js"></script>
+        <script type="text/javascript" src="js/coffee/FlightManager.js"></script>
         <script type="text/javascript" src="js/coffee/StartPage.js"></script>
-        <title>App4Norge</title>
+        <title>Rekk Flyet</title>
     </head>
     <body>
         <script type="text/javascript">
             app.initialize();
-
-            $(document).ready(function() {
-                var flightListView = $('#flightList');
-                var flightMoreLabel = $('#flightListMoreNotification');
-                var startPage = new StartPage(flightListView, flightMoreLabel);
-
-
-                $('#searchFlights').on('keyup', function() {
-                    var newVal = $('#searchFlights').val();
-                    startPage.onFlightSearchChange(newVal);
-                });
-            });
         </script>
 
 
         <div data-role="page" id="page1">
+            <script>
+                // Load it here. This JS should only be for this page.
+                //$(document).ready(function() {
+                //    var startPage = new StartPage();
+                //});
+                var start = new StartPage();
+            </script>
 
             <div data-role="header" data-position="fixed">
                 <h3>
@@ -64,14 +58,15 @@
             </div>
             <div data-role="content">
                 <form data-role="fieldcontain" id="searchForm">
-                    <label>Flynummer:  </label>
+                    <label>Flynummer: </label>
                     <input type="search" id="searchFlights" placeholder="Eksempel: SK248"/>
                 </form>
 
                 </br>
-
-                <ul data-role="listview" id="flightList" data-theme="d" data-inset="true" white-space="normal"></ul>
-                <label id="flightListMoreNotification"></label>
+                <div id="StartPageFlightContent">
+                   <ul data-role="listview" id="flightList" data-theme="d" data-inset="true" white-space="normal"></ul>
+                    <label id="flightListMoreNotification"></label>
+                </div>
 
 
             </div>

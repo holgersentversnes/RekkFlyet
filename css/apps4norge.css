@@ -4,6 +4,7 @@ table.flightSearchResultElement {
 
 .flightSearchResultElement td {
     text-align: center;
+    width: 33%;
 }
 .flightSearchResultElement td:first-child {
     text-align: left;

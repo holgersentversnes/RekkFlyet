@@ -1,36 +1,63 @@
 class window.StartPage
-  @_FLIGHT_URL = new UrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(0).timeTo(24).direction('D').build()
-  @_FLIGHTS
+  @_UI_FLIGHT_LIST = "flightList"
+  @_UI_FLIGHT_NOTIFICATION_LABEL = "flightNotificationLabel"
+  @_UI_FLIGHT_SEARCH_INPUT = "searchFlights"
+  @_FLIGHT_LIST_MAX_COUNT = 5
+  @_UI_FLIGHT_PAGE_CONTENT = "StartPageFlightContent"
 
-  reportError= (error) ->
-    console.log(error)
+  flightManager = null
 
-  fetchFlightsCallback= (flights) ->
-    StartPage._FLIGHTS = flights
-    console.dir(flights)
+  constructor: () ->
+    flightManager = new FlightManager()
+    flightManager.fetchFlights(@fetchFlightsCallback, @reportError)
 
-  constructor: (@flightsList, @flightsLabelNotifaction) ->
-    Flight.fetchFlights(StartPage._FLIGHT_URL, fetchFlightsCallback, reportError)
 
-  onFlightSearchChange: (newValue) ->
-    if newValue? and @flightsList? and StartPage._FLIGHTS? and @flightsLabelNotifaction?
-      @flightsList.empty()
-      @flightsLabelNotifaction.text('')
-      if newValue.length > 0
-        count = 5
-        newFlights = Flight.getFlightsById(newValue, count)
-        console.dir(newFlights)
+  reportError: (errorMessage) ->
+    console.log(errorMessage)
 
-        if newFlights.length is count
-          @flightsLabelNotifaction.text('Rafiner søket for flere resultater: ')
-        else if newFlights.length is 0
-          @flightsLabelNotifaction.text('Fant ingen flyavganger med søkeord: ' + newValue)
+  fetchFlightsCallback: (flightArray) ->
+    console.dir(flightArray)
+    flightManager.getAirportNameById('osl', @getAirportByNameCallback, @reportError)
+    show()
 
-        for e in newFlights
-          if e?
-            #@flightsList.append('<li>' + e.flightId + '</p>' + e.airport + '</li>')  #$('<li-ul/>', { 'text': e.flightId }))
-            @flightsList.append('<li><table class="flightSearchResultElement"><tr><td>' + e.flightId + '</td><td>' + e.schedule_time + '</td><td>' + e.airport + '</td></tr></table></li>')
-            #listView.append($('<a/>', { 'text': 'waffle' }))
-        $(@flightsList).listview("refresh")
+  getAirportByNameCallback: (name) ->
+    console.log(name)
+
+  show= () ->
+    try
+      $('#' + StartPage._UI_FLIGHT_SEARCH_INPUT).on 'keyup', () ->
+        val = $('#' + StartPage._UI_FLIGHT_SEARCH_INPUT).val()
+        onFlightSearchChange(val, StartPage._FLIGHT_LIST_MAX_COUNT)
+    catch error
+      console.log(error)
+
+  hide= () ->
+    $('#' + StartPage._UI_FLIGHT_SEARCH_INPUT).unbind('keyup')
+
+
+  onFlightSearchChange= (newVal, count) ->
+    try
+      label = $('#' + StartPage._UI_FLIGHT_NOTIFICATION_LABEL)
+      list = $('#' + StartPage._UI_FLIGHT_LIST)
+      if newVal? and flightManager? and list? and label?
+        list.empty()
+        label.text('')
+
+        if newVal.length > 0
+          newFlights = flightManager.getFlightsById(newVal, count)
+          console.dir(newFlights)
+
+          if newFlights.length is count
+            label.text('Rafiner søket for flere resultater')
+          else if newFlights.length is 0
+            label.text('Fant ingen flyavganger med søkeord: ' + newVal)
+            return
+
+          for e in newFlights
+            if e?
+              list.append('<li><table class="flightSearchResultElement"><tr><td>' + e.flightId + '</td><td>' + e.schedule_time + '</td><td>' + e.airport + '</td></tr></table></li>')
+
+          $(list).listview("refresh")
+    catch error
 
 
