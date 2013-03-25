@@ -1,8 +1,9 @@
 class window.FlightManager
+  instance = null
   @_FLIGHTS_ARRAY   # List of all the flights returned by Avinor
   @_AIRPORT_MAP = []# Map containing the loaded aiport names. key: code, value: name
   @_AVINOR_AIRPORT_URL = new UrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/airportNames.asp?', '').build() # Url for Avinor, using freberg super hax proxy. Airports
-  @_AVINOR_FLIGHT_URL = new UrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(0).timeTo(24).direction('D').build() # Url for Avinor, using freberg super hax proxy. Flights
+  @_AVINOR_FLIGHT_URL = new UrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(2).timeTo(24).direction('D').build() # Url for Avinor, using freberg super hax proxy. Flights
 
   # Fetches all the flights returned by Avinor using the @_AVINOR_FLIGHT_URL.
   # Takes two functions as callback. successCallback(Array) and errorCallback(message).
@@ -111,6 +112,9 @@ class window.FlightManager
 
         if airportName? and completeCallback?
           completeCallback(airportName)
+
+  @getInstance: () ->
+    instance?= new FlightManager()
 
 class Flight
   # Constructor takes a json flight object as argument.
