@@ -32,6 +32,7 @@
         <script type="text/javascript" src="js/coffee/Flight.js"></script>
         <script type="text/javascript" src="js/coffee/FlightFactory.js"></script>
         <script type="text/javascript" src="js/coffee/StartPage.js"></script>
+        <script type="text/javascript" src="js/coffee/ThePosition.js"></script>
         <title>App4Norge</title>
     </head>
     <body>
@@ -47,6 +48,14 @@
                 $('#searchFlights').on('keyup', function() {
                     var newVal = $('#searchFlights').val();
                     startPage.onFlightSearchChange(newVal);
+                });
+
+                var getPosButton = $("#getPosButton");
+                var positionOutput = $("#positionResult");
+                console.log(positionOutput)
+                var position = new ThePosition(positionOutput);
+                getPosButton.click(function(e) {
+                    position.getPosition();
                 });
             });
         </script>
@@ -92,7 +101,10 @@
 
             </div>
             <div data-role="content">
-
+                <a data-role="button" href="#" id="getPosButton">Pos</a>
+                <p id="positionResult">
+                    HERE?
+                </p>
             </div>
             <div data-role="footer" data-position="fixed">
                 <p>Footer Text (Page 2)</p>
