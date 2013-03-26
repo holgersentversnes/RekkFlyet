@@ -29,39 +29,28 @@
         <script type="text/javascript" src="../cordova-2.5.0.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript" src="js/coffee/UrlBuilder.js"></script>
-        <script type="text/javascript" src="js/coffee/Flight.js"></script>
-        <script type="text/javascript" src="js/coffee/FlightFactory.js"></script>
+        <script type="text/javascript" src="js/coffee/FlightManager.js"></script>
         <script type="text/javascript" src="js/coffee/StartPage.js"></script>
-        <script type="text/javascript" src="js/coffee/ThePosition.js"></script>
-        <title>App4Norge</title>
+        <title>Rekk Flyet</title>
     </head>
     <body>
         <script type="text/javascript">
             app.initialize();
-
-            $(document).ready(function() {
-                var flightListView = $('#flightList');
-                var flightMoreLabel = $('#flightListMoreNotification');
-                var startPage = new StartPage(flightListView, flightMoreLabel);
-
-
-                $('#searchFlights').on('keyup', function() {
-                    var newVal = $('#searchFlights').val();
-                    startPage.onFlightSearchChange(newVal);
-                });
-
-                var getPosButton = $("#getPosButton");
-                var positionOutput = $("#positionResult");
-                console.log(positionOutput)
-                var position = new ThePosition(positionOutput);
-                getPosButton.click(function(e) {
-                    position.getPosition();
-                });
-            });
         </script>
 
 
         <div data-role="page" id="page1">
+            <script>
+                // Load it here. This JS should only be for this page.
+                //$(document).ready(function() {
+                //    var startPage = new StartPage();
+                //});
+                $(document).ready(function() {
+                    var start = StartPage.getInstance();
+                    start.showStepOne();
+
+                });
+            </script>
 
             <div data-role="header" data-position="fixed">
                 <h3>
@@ -73,14 +62,24 @@
             </div>
             <div data-role="content">
                 <form data-role="fieldcontain" id="searchForm">
-                    <label>Flynummer:  </label>
+                    <label>Flynummer: </label>
                     <input type="search" id="searchFlights" placeholder="Eksempel: SK248"/>
                 </form>
 
                 </br>
+                <div id="StartPageFlightContent">
+                   <ul data-role="listview" id="flightList" data-theme="d" data-inset="true" white-space="normal"></ul>
+                    <label id="flightNotificationLabel"></label>
+                </div>
 
-                <ul data-role="listview" id="flightList" data-theme="d" data-inset="true" white-space="normal"></ul>
-                <label id="flightListMoreNotification"></label>
+                <fieldset data-role="controlgroup" data-type="horizontal" data-role="fieldcontain" id="StartPageBaggageContent">
+                    <input type="radio" name="radio-choice-1" id="baggage_nocheckin" value="choice-1" checked="checked"/>
+                    <label for="baggage_nocheckin">Har kun håndbagasje</label>
+
+                    <input type="radio" name="radio-choice-1" id="baggage_checkin" value="choice-2"  />
+                    <label for="baggage_checkin">Har med sjekkin bagasje</label>
+                </fieldset>
+
 
 
             </div>
@@ -101,10 +100,7 @@
 
             </div>
             <div data-role="content">
-                <a data-role="button" href="#" id="getPosButton">Pos</a>
-                <p id="positionResult">
-                    HERE?
-                </p>
+
             </div>
             <div data-role="footer" data-position="fixed">
                 <p>Footer Text (Page 2)</p>

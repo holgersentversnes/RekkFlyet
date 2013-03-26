@@ -1,36 +1,118 @@
 class window.StartPage
-  @_FLIGHT_URL = new UrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(0).timeTo(24).direction('D').build()
-  @_FLIGHTS
+  @_UI_FLIGHT_LIST                = "flightList"
+  @_UI_FLIGHT_NOTIFICATION_LABEL  = "flightNotificationLabel"
+  @_UI_FLIGHT_SEARCH_INPUT        = "searchFlights"
+  @_UI_FLIGHT_PAGE_DIV            = "StartPageFlightContent"
+  @_UI_BAGGAGE_DIV                = "StartPageBaggageContent"
+  @_UI_BAGGAGE_CHECKIN            = "baggage_checkin"
+  @_UI_BAGGAGE_NONCHECKIN         = "baggage_nocheckin"
+  @_FLIGHT_LIST_MAX_COUNT         = 5
 
-  reportError= (error) ->
-    console.log(error)
+  flightManager = new FlightManager()
+  instance      = null;
 
-  fetchFlightsCallback= (flights) ->
-    StartPage._FLIGHTS = flights
-    console.dir(flights)
+  currentSearchValue = ""
 
-  constructor: (@flightsList, @flightsLabelNotifaction) ->
-    Flight.fetchFlights(StartPage._FLIGHT_URL, fetchFlightsCallback, reportError)
+  uiFlightListId = '#' + StartPage._UI_FLIGHT_LIST
+  uiFlightSearchId = '#' + StartPage._UI_FLIGHT_SEARCH_INPUT
+  uiFlightSearchDivId = '#' + StartPage._UI_FLIGHT_PAGE_DIV
+  uiFlightNotificationLabelId = '#' + StartPage._UI_FLIGHT_NOTIFICATION_LABEL
+  uiBaggageDivId = '#' + StartPage._UI_BAGGAGE_DIV
+  uiBaggageCheckinId = '#' + StartPage._UI_BAGGAGE_CHECKIN
+  uiBaggageNonCheckinId = '#' + StartPage._UI_BAGGAGE_NONCHECKIN
 
-  onFlightSearchChange: (newValue) ->
-    if newValue? and @flightsList? and StartPage._FLIGHTS? and @flightsLabelNotifaction?
-      @flightsList.empty()
-      @flightsLabelNotifaction.text('')
-      if newValue.length > 0
-        count = 5
-        newFlights = Flight.getFlightsById(newValue, count)
+  constructor: () ->
+    flightManager = new FlightManager();
+    flightManager.fetchFlights(@fetchFlightsCallback, @errorCallback)
+    @hideStepTwo()
+
+  ###
+    Shows the list of available flights
+  ###
+  showStepOne: () ->
+    $(uiFlightSearchDivId).show()
+    $(uiFlightSearchId).on 'keyup', () ->
+      instance.onFlightSearchChange($(uiFlightSearchId).val())
+
+  ###
+    Hides the list of available flights
+  ###
+  hideStepOne: () ->
+    $(uiFlightSearchDivId).hide()
+    $(uiFlightSearchId).unbind('keyup')
+
+  ###
+    Shows the baggage options and the train station "picker"
+  ###
+  ShowStepTwo: () ->
+    $(uiBaggageDivId).show()
+
+  ###
+    Hides the baggage options and the train station "picker"
+  ###
+  hideStepTwo: () ->
+    $(uiBaggageDivId).hide()
+
+  ###
+    Event that gets fired on search field change/key up
+  ###
+  onFlightSearchChange: (newVal) ->
+    try
+      if not newVal? or not flightManager?
+        throw new Error('Something went wrong')
+
+      newVal = newVal.trim()
+      if newVal is currentSearchValue
+        return
+
+      $(uiFlightListId).empty()
+      $(uiFlightNotificationLabelId).text('')
+
+      if newVal.length > 0 and $(uiFlightListId).is(':visible')
+        newFlights = flightManager.getFlightsById(newVal, StartPage._FLIGHT_LIST_MAX_COUNT)
         console.dir(newFlights)
 
-        if newFlights.length is count
-          @flightsLabelNotifaction.text('Rafiner søket for flere resultater: ')
+        if newFlights.length is StartPage._FLIGHT_LIST_MAX_COUNT
+          $(uiFlightNotificationLabelId).text('Rafiner søket for flere resultater')
         else if newFlights.length is 0
-          @flightsLabelNotifaction.text('Fant ingen flyavganger med søkeord: ' + newValue)
+          $(uiFlightNotificationLabelId).text('Fant ingen fly med koden ' + newVal)
+        else if newFlights.length is 1 and currentSearchValue != newVal and newVal.length >= currentSearchValue.length
+          StartPage.getInstance().onFlightSelected(newFlights[0].flightId)
+          currentSearchValue = newFlights[0].flightId
+          return
 
         for e in newFlights
           if e?
-            #@flightsList.append('<li>' + e.flightId + '</p>' + e.airport + '</li>')  #$('<li-ul/>', { 'text': e.flightId }))
-            @flightsList.append('<li><table class="flightSearchResultElement"><tr><td>' + e.flightId + '</td><td>' + e.schedule_time + '</td><td>' + e.airport + '</td></tr></table></li>')
-            #listView.append($('<a/>', { 'text': 'waffle' }))
-        $(@flightsList).listview("refresh")
+            $(uiFlightListId).append('<li id=' + e.flightId + '><table class="flightSearchResultElement"><tr><td>' + e.flightId + '</td><td>' + e.schedule_time + '</td><td>' + e.airport + '</td></tr></table></li>')
 
+        $(uiFlightListId).delegate 'li', 'click', (val) ->
+          val = val['currentTarget']['id']
+          StartPage.getInstance().onFlightSelected val
+        $(uiFlightListId).listview('refresh')
 
+        currentSearchValue = newVal
+    catch error
+      @errorCallback(error)
+
+  ###
+    Executed when the user presses a flight in the list or types the whole name.
+  ###
+  onFlightSelected: (val) ->
+    $(uiFlightSearchId).val(val)
+    StartPage.getInstance().hideStepOne()
+    StartPage.getInstance().ShowStepTwo()
+    $(uiFlightSearchId).on 'keyup', () ->
+      if $(uiFlightSearchId).val().trim() != currentSearchValue
+        $(uiFlightSearchId).unbind('keyup')
+        StartPage.getInstance().showStepOne()
+        StartPage.getInstance().onFlightSearchChange(val)
+        StartPage.getInstance().hideStepTwo()
+
+  fetchFlightsCallback: (flightArray) ->
+    console.dir(flightArray)
+
+  errorCallback: (error) ->
+    console.error(error)
+
+  @getInstance: () ->
+    instance ?= new StartPage()
