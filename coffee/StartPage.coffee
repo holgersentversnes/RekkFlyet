@@ -7,8 +7,10 @@ class window.StartPage
   @_UI_BAGGAGE_CHECKIN            = "baggage_checkin"
   @_UI_BAGGAGE_NONCHECKIN         = "baggage_nocheckin"
   @_FLIGHT_LIST_MAX_COUNT         = 5
+  @_CHOSEN_FLIGHT                 = null
 
   flightManager = new FlightManager()
+  trainManager = new TrainManager()
   instance      = null;
 
   currentSearchValue = ""
@@ -22,7 +24,7 @@ class window.StartPage
   uiBaggageNonCheckinId = '#' + StartPage._UI_BAGGAGE_NONCHECKIN
 
   constructor: () ->
-    flightManager = new FlightManager();
+    #flightManager = new FlightManager();
     flightManager.fetchFlights(@fetchFlightsCallback, @errorCallback)
     @hideStepTwo()
 
@@ -98,7 +100,9 @@ class window.StartPage
     Executed when the user presses a flight in the list or types the whole name.
   ###
   onFlightSelected: (val) ->
+    StartPage._CHOSEN_FLIGHT = flightManager.getFlightsById(val, 1);
     $(uiFlightSearchId).val(val)
+
     StartPage.getInstance().hideStepOne()
     StartPage.getInstance().ShowStepTwo()
     $(uiFlightSearchId).on 'keyup', () ->
