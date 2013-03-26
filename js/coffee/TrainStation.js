@@ -3,8 +3,8 @@
 /*
 
 File name: TrainStation.coffee
-Last updated: March 25th, 2013
-Version: 1.0
+Last updated: March 26th, 2013
+Version: 1.1
 
 Description:
   A train station is defined by its ID, name and position (both geographical and UTM coordinates). It contains one
@@ -17,7 +17,10 @@ Usage example:
   onStationUpdate = ( station ) =>
     console.log( station.name )
 
-  station = new TrainStation( onStationUpdate )
+  onStationUpdateFailure = ( error ) =>
+    console.log( error )
+
+  station = new TrainStation( onStationUpdate, onStationUpdateFailure )
   station.closestTo( 60, 11 )
 */
 
@@ -39,9 +42,10 @@ Usage example:
 
     TrainStation.longitude;
 
-    function TrainStation(onUpdated) {
+    function TrainStation(_onUpdated, _onUpdateFailed) {
       var _this = this;
-      this.onUpdated = onUpdated;
+      this._onUpdated = _onUpdated;
+      this._onUpdateFailed = _onUpdateFailed;
       this._getGeometricalDistanceFrom = function(latitude, longitude) {
         return TrainStation.prototype._getGeometricalDistanceFrom.apply(_this, arguments);
       };
@@ -74,14 +78,18 @@ Usage example:
     };
 
     TrainStation.prototype.closestTo = function(latitude, longitude) {
+      var query;
       this.latitude = latitude;
       this.longitude = longitude;
-      return jQuery.getJSON("json/airporttrain_stations.json", this._saveClosestTrainStationInformation);
+      query = jQuery.getJSON("json/airporttrain_stations.json", this._saveClosestTrainStationInformation);
+      if (this._onUpdateFailed != null) {
+        return query.fail(this._onUpdateFailed);
+      }
     };
 
     TrainStation.prototype._notifyUpdated = function() {
-      if ((this.onUpdated != null)) {
-        return this.onUpdated(this);
+      if (this._onUpdated != null) {
+        return this._onUpdated(this);
       }
     };
 

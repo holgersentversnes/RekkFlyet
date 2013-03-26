@@ -3,13 +3,11 @@
   var Flight;
 
   window.FlightManager = (function() {
-    var airportMap, avinorAirportUrl, avinorFlightUrl, flightArray, instance, instanceNum;
+    var airportMap, avinorAirportUrl, avinorFlightUrl, flightArray, instance;
 
     function FlightManager() {}
 
     instance = new FlightManager;
-
-    instanceNum = 0;
 
     flightArray = new Array();
 
@@ -67,9 +65,7 @@
           } catch (error) {
             return errorCallback('Feilet ved henting av fly');
           }
-          if (successCallback != null) {
-            return successCallback(flightArray);
-          }
+          return successCallback(flightArray);
         }
       });
     };
