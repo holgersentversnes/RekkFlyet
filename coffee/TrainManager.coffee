@@ -3,6 +3,7 @@ class window.TrainManager
   _USER_TRAIN_STATION_ID = 0 #= 2190400         #Skal hentes fra inputfelt
   _USER_TIME_FROM_FLIGHT = 0 #= 260320131500    #Skal hentes fra inputfelt
   @_RUTER_TRAIN_URL = "http://freberg.org/jsonpproxy.php?url="; # + encodeURIComponent("http://api-test.trafikanten.no/TravelStage/GetDeparturesAdvanced/" + @_USER_TRAIN_STATION_ID + "?time=" + @_USER_TIME_FROM_FLIGHT + "&lines=FT&transporttypes=AirportTrain&proposals=1");
+  @_CHOSEN_FLIGHT_FROM_START_PAGE = null
 
   setUserTrainStationID: (trainStationID) ->
     _USER_TRAIN_STATION_ID = trainStationID #2190400
@@ -10,15 +11,16 @@ class window.TrainManager
   setUserTimeFromFlight: (flightTime) ->
     _USER_TIME_FROM_FLIGHT = flightTime #260320131500
 
-  createEncodedProxyURL: (trainStationID, flightTime) ->
+  createEncodedProxyURL: (trainStationID, flightObject) ->
     @setUserTrainStationID(trainStationID)
-    @setUserTimeFromFlight(flightTime)
+    @setUserTimeFromFlight(flightObject) #TODO hent ut tiden
 
     if _USER_TRAIN_STATION_ID != 0 and _USER_TIME_FROM_FLIGHT != 0
       TrainManager._RUTER_TRAIN_URL += encodeURIComponent("http://api-test.trafikanten.no/TravelStage/GetDeparturesAdvanced/" + _USER_TRAIN_STATION_ID + "?time=" + _USER_TIME_FROM_FLIGHT + "&lines=FT&transporttypes=AirportTrain&proposals=1");
 
-  fetchTrains: (trainStationID, flightTime) ->
-    @createEncodedProxyURL(trainStationID, flightTime)
+  #Denne skal kalles fra StartPage
+  fetchTrains: (trainStationID, flightObject) ->
+    @createEncodedProxyURL(trainStationID, flightObject)
     jQuery.ajax
       url: TrainManager._RUTER_TRAIN_URL,
       dataType: 'jsonp',
@@ -50,9 +52,16 @@ class window.TrainManager
           #console.log("Arrival time: " + train.arrivalTime)
           #console.log("=====================================================")
         console.log(TrainManager._TRAIN_ARRAY.length)
+        complete: () ->
+          @getPossibleTrainList(trainStationID, flightObject)
 
-  getPossibleTrainList: () ->
+  getPossibleTrainList: (trainStationID, flightObject) ->
+    if flightObject?
+      #@fetchTrains(trainStationID, flightObject)
+      console.log("asdl")
+
     console.log("LOL")
+
 
 class Train
   #Constructor takes a json train object as argument
