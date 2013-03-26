@@ -1,11 +1,4 @@
 class window.StartPage
-  @_UI_FLIGHT_LIST                = "flightList"
-  @_UI_FLIGHT_NOTIFICATION_LABEL  = "flightNotificationLabel"
-  @_UI_FLIGHT_SEARCH_INPUT        = "searchFlights"
-  @_UI_FLIGHT_PAGE_DIV            = "StartPageFlightContent"
-  @_UI_BAGGAGE_DIV                = "StartPageBaggageContent"
-  @_UI_BAGGAGE_CHECKIN            = "baggage_checkin"
-  @_UI_BAGGAGE_NONCHECKIN         = "baggage_nocheckin"
   @_FLIGHT_LIST_MAX_COUNT         = 5
   @_CHOSEN_FLIGHT                 = null
 
@@ -13,19 +6,20 @@ class window.StartPage
   trainManager = new TrainManager()
   instance      = null;
 
+  uiFlightListId = '#flightList'
+  uiFlightSearchId = '#searchFlights'
+  uiFlightSearchDivId = '#StartPageFlightContent'
+  uiFlightNotificationLabelId = '#flightNotificationLabel'
+  uiBaggageDivId = '#StartPageBaggageContent'
+  uiBaggageCheckinId = '#baggage_checkin'
+  uiBaggageNonCheckinId = '#baggage_nocheckin'
+
   currentSearchValue = ""
+  flightManager = null
+  instance      = null
 
-  uiFlightListId = '#' + StartPage._UI_FLIGHT_LIST
-  uiFlightSearchId = '#' + StartPage._UI_FLIGHT_SEARCH_INPUT
-  uiFlightSearchDivId = '#' + StartPage._UI_FLIGHT_PAGE_DIV
-  uiFlightNotificationLabelId = '#' + StartPage._UI_FLIGHT_NOTIFICATION_LABEL
-  uiBaggageDivId = '#' + StartPage._UI_BAGGAGE_DIV
-  uiBaggageCheckinId = '#' + StartPage._UI_BAGGAGE_CHECKIN
-  uiBaggageNonCheckinId = '#' + StartPage._UI_BAGGAGE_NONCHECKIN
-
-  constructor: () ->
-    #flightManager = new FlightManager();
-    flightManager.fetchFlights(@fetchFlightsCallback, @errorCallback)
+  constructor: (fm) ->
+    flightManager = fm
     @hideStepTwo()
 
   ###
