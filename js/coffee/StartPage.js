@@ -2,49 +2,83 @@
 (function() {
 
   window.StartPage = (function() {
-    var fetchFlightsCallback, reportError;
+    var flightManager, hide, onFlightSearchChange, show;
 
-    StartPage._FLIGHT_URL = new UrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(0).timeTo(24).direction('D').build();
+    StartPage._UI_FLIGHT_LIST = "flightList";
 
-    StartPage._FLIGHTS;
+    StartPage._UI_FLIGHT_NOTIFICATION_LABEL = "flightNotificationLabel";
 
-    reportError = function(error) {
-      return console.log(error);
-    };
+    StartPage._UI_FLIGHT_SEARCH_INPUT = "searchFlights";
 
-    fetchFlightsCallback = function(flights) {
-      StartPage._FLIGHTS = flights;
-      return console.dir(flights);
-    };
+    StartPage._FLIGHT_LIST_MAX_COUNT = 5;
 
-    function StartPage(flightsList, flightsLabelNotifaction) {
-      this.flightsList = flightsList;
-      this.flightsLabelNotifaction = flightsLabelNotifaction;
-      Flight.fetchFlights(StartPage._FLIGHT_URL, fetchFlightsCallback, reportError);
+    StartPage._UI_FLIGHT_PAGE_CONTENT = "StartPageFlightContent";
+
+    flightManager = null;
+
+    function StartPage() {
+      flightManager = new FlightManager();
+      flightManager.fetchFlights(this.fetchFlightsCallback, this.reportError);
     }
 
-    StartPage.prototype.onFlightSearchChange = function(newValue) {
-      var count, e, newFlights, _i, _len;
-      if ((newValue != null) && (this.flightsList != null) && (StartPage._FLIGHTS != null) && (this.flightsLabelNotifaction != null)) {
-        this.flightsList.empty();
-        this.flightsLabelNotifaction.text('');
-        if (newValue.length > 0) {
-          count = 5;
-          newFlights = Flight.getFlightsById(newValue, count);
-          console.dir(newFlights);
-          if (newFlights.length === count) {
-            this.flightsLabelNotifaction.text('Rafiner søket for flere resultater: ');
-          } else if (newFlights.length === 0) {
-            this.flightsLabelNotifaction.text('Fant ingen flyavganger med søkeord: ' + newValue);
-          }
-          for (_i = 0, _len = newFlights.length; _i < _len; _i++) {
-            e = newFlights[_i];
-            if (e != null) {
-              this.flightsList.append('<li><table class="flightSearchResultElement"><tr><td>' + e.flightId + '</td><td>' + e.schedule_time + '</td><td>' + e.airport + '</td></tr></table></li>');
+    StartPage.prototype.reportError = function(errorMessage) {
+      return console.log(errorMessage);
+    };
+
+    StartPage.prototype.fetchFlightsCallback = function(flightArray) {
+      console.dir(flightArray);
+      flightManager.getAirportNameById('osl', this.getAirportByNameCallback, this.reportError);
+      return show();
+    };
+
+    StartPage.prototype.getAirportByNameCallback = function(name) {
+      return console.log(name);
+    };
+
+    show = function() {
+      try {
+        return $('#' + StartPage._UI_FLIGHT_SEARCH_INPUT).on('keyup', function() {
+          var val;
+          val = $('#' + StartPage._UI_FLIGHT_SEARCH_INPUT).val();
+          return onFlightSearchChange(val, StartPage._FLIGHT_LIST_MAX_COUNT);
+        });
+      } catch (error) {
+        return console.log(error);
+      }
+    };
+
+    hide = function() {
+      return $('#' + StartPage._UI_FLIGHT_SEARCH_INPUT).unbind('keyup');
+    };
+
+    onFlightSearchChange = function(newVal, count) {
+      var e, label, list, newFlights, _i, _len;
+      try {
+        label = $('#' + StartPage._UI_FLIGHT_NOTIFICATION_LABEL);
+        list = $('#' + StartPage._UI_FLIGHT_LIST);
+        if ((newVal != null) && (flightManager != null) && (list != null) && (label != null)) {
+          list.empty();
+          label.text('');
+          if (newVal.length > 0) {
+            newFlights = flightManager.getFlightsById(newVal, count);
+            console.dir(newFlights);
+            if (newFlights.length === count) {
+              label.text('Rafiner søket for flere resultater');
+            } else if (newFlights.length === 0) {
+              label.text('Fant ingen flyavganger med søkeord: ' + newVal);
+              return;
             }
+            for (_i = 0, _len = newFlights.length; _i < _len; _i++) {
+              e = newFlights[_i];
+              if (e != null) {
+                list.append('<li><table class="flightSearchResultElement"><tr><td>' + e.flightId + '</td><td>' + e.schedule_time + '</td><td>' + e.airport + '</td></tr></table></li>');
+              }
+            }
+            return $(list).listview("refresh");
           }
-          return $(this.flightsList).listview("refresh");
         }
+      } catch (error) {
+
       }
     };
 
