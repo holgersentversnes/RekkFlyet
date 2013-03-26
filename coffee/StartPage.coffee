@@ -1,5 +1,10 @@
 class window.StartPage
   @_FLIGHT_LIST_MAX_COUNT         = 5
+  @_CHOSEN_FLIGHT                 = null
+
+  flightManager = new FlightManager()
+  trainManager = new TrainManager()
+  instance      = null;
 
   uiFlightListId = '#flightList'
   uiFlightSearchId = '#searchFlights'
@@ -11,7 +16,7 @@ class window.StartPage
 
   currentSearchValue = ""
   flightManager = null
-  instance      = null;
+  instance      = null
 
   constructor: (fm) ->
     flightManager = fm
@@ -89,7 +94,9 @@ class window.StartPage
     Executed when the user presses a flight in the list or types the whole name.
   ###
   onFlightSelected: (val) ->
+    StartPage._CHOSEN_FLIGHT = flightManager.getFlightsById(val, 1);
     $(uiFlightSearchId).val(val)
+
     StartPage.getInstance().hideStepOne()
     StartPage.getInstance().ShowStepTwo()
     $(uiFlightSearchId).on 'keyup', () ->
