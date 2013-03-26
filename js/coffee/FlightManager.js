@@ -3,17 +3,18 @@
   var Flight;
 
   window.FlightManager = (function() {
-    var airportMap, avinorAirportUrl, avinorFlightUrl, flightArray, instance, instanceNum;
+    var instance;
 
     function FlightManager() {}
 
-    instance = new FlightManager;
+    instance = null;
+
 
     instanceNum = 0;
 
     flightArray = new Array();
 
-    airportMap = new Array();
+    FlightManager._AVINOR_FLIGHT_URL = new UrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(2).timeTo(24).direction('D').build();
 
     avinorFlightUrl = new FlightUrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(0).timeTo(24).direction('D').build();
 
@@ -157,6 +158,10 @@
           }
         }
       });
+    };
+
+    FlightManager.getInstance = function() {
+      return instance != null ? instance : instance = new FlightManager();
     };
 
     FlightManager.getInstance = function() {
