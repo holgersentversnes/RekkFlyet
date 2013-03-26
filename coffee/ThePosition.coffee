@@ -14,4 +14,4 @@ class window.ThePosition
     resultD = resultDiv
 
   getPosition: () ->
-    navigator.geolocation.getCurrentPosition(@geolocationSuccess, @geolocationError)
+    navigator.geolocation.getCurrentPosition(@geolocationSuccess, @geolocationError, { maximumAge: 3000, timeout: 5000, enableHighAccuracy: true })

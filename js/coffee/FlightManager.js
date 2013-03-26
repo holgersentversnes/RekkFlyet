@@ -3,32 +3,28 @@
   var Flight;
 
   window.FlightManager = (function() {
-    var instance;
+    var airportMap, avinorAirportUrl, avinorFlightUrl, flightArray, instance;
 
     function FlightManager() {}
 
-    instance = null;
+    instance = new FlightManager;
 
-    FlightManager._FLIGHTS_ARRAY;
+    flightArray = new Array();
 
-    FlightManager._AIRPORT_MAP = [];
+    airportMap = new Array();
 
-    FlightManager._AVINOR_AIRPORT_URL = new UrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/airportNames.asp?', '').build();
+    avinorFlightUrl = new FlightUrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(0).timeTo(24).direction('D').build();
 
-    FlightManager._AVINOR_FLIGHT_URL = new UrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(2).timeTo(24).direction('D').build();
+    avinorAirportUrl = new FlightUrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/airportNames.asp?', '').build();
 
     FlightManager.prototype.fetchFlights = function(successCallback, errorCallback) {
       if (!window.navigator.onLine) {
         if (errorCallback != null) {
-          errorCallback('Er ikke koblet til internett. Kan ikke hente fly.');
-        }
-        if (successCallback != null) {
-          FlightManager._FLIGHTS_ARRAY = new Array();
-          return successCallback(Flights._FLIGHTS_ARRAY);
+          return errorCallback('Er ikke koblet til internett. Kan ikke hente fly informasjon.');
         }
       }
       return jQuery.ajax({
-        url: FlightManager._AVINOR_FLIGHT_URL,
+        url: avinorFlightUrl,
         dataType: 'jsonp',
         jsonp: 'jsonp',
         jsonpCallback: 'jsonCallback',
@@ -39,115 +35,128 @@
         },
         success: function(data) {
           var f, tmpFlight, _i, _len, _ref, _results;
-          FlightManager._FLIGHTS_ARRAY = new Array();
-          _ref = data['flights']['flight'];
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            f = _ref[_i];
-            tmpFlight = new Flight(f);
-            _results.push(FlightManager._FLIGHTS_ARRAY.push(tmpFlight));
+          flightArray = new Array();
+          try {
+            _ref = data['flights']['flight'];
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              f = _ref[_i];
+              tmpFlight = new Flight(f);
+              _results.push(flightArray.push(tmpFlight));
+            }
+            return _results;
+          } catch (error) {
+            return errorCallback('Feilet ved henting av fly');
           }
-          return _results;
         },
         complete: function() {
-          FlightManager._FLIGHTS_ARRAY.sort(function(aa, bb) {
-            if (aa.flightId < bb.flightId) {
-              return -1;
-            } else if (aa.flightId > bb.flightId) {
-              return 1;
-            } else {
-              return 0;
+          try {
+            if (flightArray != null) {
+              flightArray.sort(function(one, two) {
+                if (one.flightId < two.flightId) {
+                  return -1;
+                } else if (one.flightId > two.flightId) {
+                  return 1;
+                } else {
+                  return 0;
+                }
+              });
             }
-          });
-          return successCallback(FlightManager._FLIGHTS_ARRAY);
+          } catch (error) {
+            return errorCallback('Feilet ved henting av fly');
+          }
+          return successCallback(flightArray);
         }
       });
     };
 
     FlightManager.prototype.getFlightsById = function(id, count) {
-      var e, num, tmpLst, _i, _len, _ref;
-      if (FlightManager._FLIGHTS_ARRAY != null) {
-        tmpLst = new Array();
-        id = id.toUpperCase();
-        num = 0;
-        _ref = FlightManager._FLIGHTS_ARRAY;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          e = _ref[_i];
-          if (id === e.flightId.substring(0, id.length)) {
-            tmpLst.push(e);
-            num++;
-          }
-          if (num >= count) {
-            break;
-          }
+      var e, num, tmpLst, _i, _len;
+      if (flightArray == null) {
+        throw new Error('Har ikke hentet ned flyinformasjon');
+      }
+      tmpLst = new Array();
+      id = id.toUpperCase().trim();
+      num = 0;
+      for (_i = 0, _len = flightArray.length; _i < _len; _i++) {
+        e = flightArray[_i];
+        if (id === e.flightId.substring(0, id.length)) {
+          tmpLst.push(e);
+          num++;
         }
-      } else {
-        throw new Error("Har ikke hentet ned flyinformasjon");
+        if (num >= count) {
+          break;
+        }
       }
       return tmpLst;
     };
 
     FlightManager.prototype.getAirportNameById = function(id, callback, errorCallback) {
-      var flight;
-      id = id.toUpperCase().trim();
+      var airport;
       try {
-        flight = FlightManager._AIRPORT_MAP[id];
-        if (flight == null) {
-          return this.fetchAirportNameById(id, callback, errorCallback);
+        id = id.toUpperCase().trim();
+        airport = airportMap[id];
+        if (airport == null) {
+          return this._fetchAirportNameById(id, callback, errorCallback);
         } else {
-          return callback(flight);
+          return callback(airport);
         }
       } catch (error) {
-        FlightManager._AIRPORT_MAP[id] = id;
-        errorCallback('Feil ved henting av flyplass, bruker flyplass kode');
-        return callback(id);
+        airportMap[id] = id;
+        if (errorCallback != null) {
+          errorCallback('Feil ved henting av flyplass, bruker flyplass kode');
+        }
+        if (callback != null) {
+          return callback(id);
+        }
       }
     };
 
-    FlightManager.prototype.fetchAirportNameById = function(id, completeCallback, errorCallback) {
-      var dataHolder, url;
+    FlightManager.prototype._fetchAirportNameById = function(id, successCallback, errorCallback) {
+      var dataHolder;
       if (!window.navigator.onLine) {
         if (errorCallback != null) {
-          errorCallback('Er ikke koblet til internett, bruker flyplass koder');
+          errorCallback('Er ikke koblet til internett, bruker flyplass kode');
         }
-        if (completeCallback != null) {
-          return completeCallback(id);
+        if (successCallback != null) {
+          successCallback(id);
         }
       }
       dataHolder = "";
-      url = FlightManager._AVINOR_AIRPORT_URL += id;
       return jQuery.ajax({
-        url: url,
+        url: avinorAirportUrl + id,
         dataType: 'jsonp',
         jsonp: 'jsonp',
         jsonpCallback: 'jsonCallback',
         error: function(a, b, e) {
-          return console.log(e);
+          if (errorCallback != null) {
+            return errorCallback(b);
+          }
         },
-        success: function(data) {
-          return dataHolder = data;
+        success: function(responseData) {
+          return dataHolder = responseData;
         },
         complete: function() {
           var airportName, tmp;
           airportName = id;
           try {
             tmp = dataHolder['airportName']['@attributes']['name'];
-            FlightManager._AVINOR_AIRPORT_URL[id] = tmp;
+            airportMap[id] = tmp;
             airportName = tmp;
-          } catch (e) {
+          } catch (error) {
             if (errorCallback != null) {
               errorCallback('Feil ved henting av flyplass, bruker flyplass kode');
             }
           }
-          if ((airportName != null) && (completeCallback != null)) {
-            return completeCallback(airportName);
+          if (successCallback != null) {
+            return successCallback(airportName);
           }
         }
       });
     };
 
     FlightManager.getInstance = function() {
-      return instance != null ? instance : instance = new FlightManager();
+      return instance;
     };
 
     return FlightManager;
@@ -157,15 +166,15 @@
   Flight = (function() {
 
     function Flight(flightObject) {
-      var day, hours, minutes, month, tmpDate;
+      var day, hours, minutes, month;
       this.uniqueId = flightObject['@attributes']['uniqueID'];
       this.flightId = flightObject['flight_id'].toUpperCase();
       this.dom_int = flightObject['dom_int'];
-      tmpDate = new Date(flightObject['schedule_time']);
-      minutes = tmpDate.getMinutes();
-      hours = tmpDate.getHours();
-      day = tmpDate.getDay();
-      month = tmpDate.getMonth();
+      this.scheduled_time_date = new Date(flightObject['schedule_time']);
+      minutes = this.scheduled_time_date.getMinutes();
+      hours = this.scheduled_time_date.getHours();
+      day = this.scheduled_time_date.getDay();
+      month = this.scheduled_time_date.getMonth();
       if (minutes < 10) {
         minutes = "0" + minutes;
       }
@@ -186,6 +195,28 @@
       this.gate(flightObject);
       this.status(flightObject);
     }
+
+    Flight.prototype.getRuterFlightFormat = function() {
+      var day, hour, minutes, month, year;
+      day = this.scheduled_time_date.getDate();
+      month = parseInt(this.scheduled_time_date.getMonth()) + 1;
+      year = this.scheduled_time_date.getFullYear();
+      hour = this.scheduled_time_date.getHours();
+      minutes = this.scheduled_time_date.getMinutes();
+      if (day < 10) {
+        day = "0" + day;
+      }
+      if (month < 10) {
+        month = "0" + month;
+      }
+      if (hour < 10) {
+        hour = "0" + hour;
+      }
+      if (minutes < 10) {
+        minutes = "0" + minutes;
+      }
+      return day + month + year + hour + minutes;
+    };
 
     Flight.prototype.via_airport = function(val) {
       if (val['airport'] != null) {

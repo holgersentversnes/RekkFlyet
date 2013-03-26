@@ -1,134 +1,124 @@
 class window.FlightManager
-  instance = null
-  @_FLIGHTS_ARRAY   # List of all the flights returned by Avinor
-  @_AIRPORT_MAP = []# Map containing the loaded aiport names. key: code, value: name
-  @_AVINOR_AIRPORT_URL = new UrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/airportNames.asp?', '').build() # Url for Avinor, using freberg super hax proxy. Airports
-  @_AVINOR_FLIGHT_URL = new UrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(2).timeTo(24).direction('D').build() # Url for Avinor, using freberg super hax proxy. Flights
+  instance = new FlightManager
 
-  # Fetches all the flights returned by Avinor using the @_AVINOR_FLIGHT_URL.
-  # Takes two functions as callback. successCallback(Array) and errorCallback(message).
-  # Checks if phone is connected to the internet. If not, it will an error message via errorCallback and a empty array to successCallback.
+  flightArray = new Array()
+  airportMap = new Array();
+  avinorFlightUrl = new FlightUrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(0).timeTo(24).direction('D').build() # Url for Avinor, using freberg super hax proxy. Flights
+  avinorAirportUrl = new FlightUrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/airportNames.asp?', '').build() # Url for Avinor, using freberg super hax proxy. Airports
+
   fetchFlights: (successCallback, errorCallback) ->
     if not window.navigator.onLine
-      if errorCallback?
-        errorCallback 'Er ikke koblet til internett. Kan ikke hente fly.'
-      if successCallback?
-        FlightManager._FLIGHTS_ARRAY = new Array()
-        return successCallback Flights._FLIGHTS_ARRAY
+      if errorCallback? then return errorCallback('Er ikke koblet til internett. Kan ikke hente fly informasjon.')
 
     jQuery.ajax
-      url: FlightManager._AVINOR_FLIGHT_URL,
+      url: avinorFlightUrl,
       dataType: 'jsonp',
       jsonp: 'jsonp',
       jsonpCallback: 'jsonCallback'
 
       error: (a, b, e) ->
-        if errorCallback?
-          errorCallback e
+        if errorCallback? then return errorCallback(e)
 
       success: (data) ->
-        FlightManager._FLIGHTS_ARRAY = new Array()
-        for f in data['flights']['flight']
-          tmpFlight = new Flight(f)
-          FlightManager._FLIGHTS_ARRAY.push(tmpFlight)
+        flightArray = new Array()
+        try
+          for f in data['flights']['flight']
+            tmpFlight = new Flight(f)
+            flightArray.push(tmpFlight)
+        catch error
+          return errorCallback('Feilet ved henting av fly')
 
       complete: () ->
-        FlightManager._FLIGHTS_ARRAY.sort (aa, bb) ->
-          if (aa.flightId < bb.flightId)
-            return -1
-          else if (aa.flightId > bb.flightId)
-            return 1
-          else
-            return 0
-        successCallback(FlightManager._FLIGHTS_ARRAY)
+        try
+          if flightArray?
+            flightArray.sort (one, two) ->
+              if (one.flightId < two.flightId)
+                return -1
+              else if (one.flightId > two.flightId)
+                return 1
+              else
+                return 0
+        catch error
+          return errorCallback('Feilet ved henting av fly')
 
-  # Returns an array where all the entries are of type Flight where beginning of id is the same of the flight id.
-  # Throws an error if no flight information has been fetched.
+        #if successCallback? then
+        successCallback (flightArray)
+
   getFlightsById: (id, count) ->
-    if FlightManager._FLIGHTS_ARRAY?
-      tmpLst = new Array()
-      id = id.toUpperCase()
+    if not flightArray? then throw new Error('Har ikke hentet ned flyinformasjon')
 
-      num = 0
-      for e in FlightManager._FLIGHTS_ARRAY
-        if (id is e.flightId.substring(0, id.length))
-          tmpLst.push(e)
-          num++
-        if (num >= count)
-          break
-    else
-      throw new Error("Har ikke hentet ned flyinformasjon")
+    tmpLst = new Array()
+    id = id.toUpperCase().trim();
+
+    num = 0;
+    for e in flightArray
+      if (id is e.flightId.substring(0, id.length))
+        tmpLst.push(e)
+        num++
+      if (num >= count)
+        break
+
     return tmpLst
 
-  # Returns the name of the airport in a callback. If an airport with the given id is not stored in the map, it will fetch it using fetchAirporNameById.
-  # Value will be returned with callback.
   getAirportNameById: (id, callback, errorCallback) ->
-    id = id.toUpperCase().trim()
     try
-      flight = FlightManager._AIRPORT_MAP[id]
-      if not flight?
-        @fetchAirportNameById(id, callback, errorCallback)
+      id = id.toUpperCase().trim()
+      airport = airportMap[id]
+      if not airport?
+        @_fetchAirportNameById(id, callback, errorCallback)
       else
-        callback(flight)
+        callback(airport)
 
     catch error
-      FlightManager._AIRPORT_MAP[id] = id
-      errorCallback('Feil ved henting av flyplass, bruker flyplass kode')
-      callback(id)
+      airportMap[id] = id
+      if errorCallback? then errorCallback('Feil ved henting av flyplass, bruker flyplass kode')
+      if callback? then callback(id)
 
-  # Fetches the airportname from Avinor using the ID. If nothing is returned (invalid id, no internet, or any other exception), the airport IATA code will be used.
-  fetchAirportNameById: (id, completeCallback, errorCallback) ->
+  _fetchAirportNameById: (id, successCallback, errorCallback) ->
     if not window.navigator.onLine
-      if errorCallback?
-        errorCallback('Er ikke koblet til internett, bruker flyplass koder')
-
-      if completeCallback?
-        return completeCallback(id)
-
+      if errorCallback? then errorCallback('Er ikke koblet til internett, bruker flyplass kode')
+      if successCallback? then successCallback(id)
 
     dataHolder = ""
-    url = FlightManager._AVINOR_AIRPORT_URL += id
     jQuery.ajax
-      url: url,
+      url: avinorAirportUrl + id,
       dataType: 'jsonp',
       jsonp: 'jsonp',
       jsonpCallback: 'jsonCallback'
 
       error: (a, b, e) ->
-        console.log(e);
+        if errorCallback? then return errorCallback(b)
 
-      success: (data) ->
-        dataHolder = data
+      success: (responseData) ->
+        dataHolder = responseData
 
-      complete: ->
-        airportName = id
+      complete: () ->
+        airportName = id;
         try
           tmp = dataHolder['airportName']['@attributes']['name']
-          FlightManager._AVINOR_AIRPORT_URL[id] = tmp
+          airportMap[id] = tmp
           airportName = tmp
-        catch e
-          if errorCallback?
-            errorCallback('Feil ved henting av flyplass, bruker flyplass kode')
+        catch error
+          if errorCallback? then errorCallback('Feil ved henting av flyplass, bruker flyplass kode')
 
-        if airportName? and completeCallback?
-          completeCallback(airportName)
+        if successCallback? then successCallback (airportName)
 
   @getInstance: () ->
-    instance?= new FlightManager()
+    return instance
 
 class Flight
-  # Constructor takes a json flight object as argument.
+# Constructor takes a json flight object as argument.
   constructor: (flightObject) ->
     @uniqueId = flightObject['@attributes']['uniqueID']
     @flightId = flightObject['flight_id'].toUpperCase()
     @dom_int = flightObject['dom_int']
-    tmpDate = new Date(flightObject['schedule_time'])
+    @scheduled_time_date = new Date(flightObject['schedule_time'])
 
-    minutes = tmpDate.getMinutes()
-    hours = tmpDate.getHours()
+    minutes = @scheduled_time_date.getMinutes()
+    hours = @scheduled_time_date.getHours()
 
-    day = tmpDate.getDay()
-    month = tmpDate.getMonth()
+    day = @scheduled_time_date.getDay()
+    month = @scheduled_time_date.getMonth()
 
     if minutes < 10 then minutes = "0" + minutes
     if hours <10 then hours = "0" + hours
@@ -144,6 +134,21 @@ class Flight
     @check_in(flightObject)
     @gate(flightObject)
     @status(flightObject)
+
+  getRuterFlightFormat: () ->
+    day = @scheduled_time_date.getDate()
+    month = parseInt(@scheduled_time_date.getMonth()) + 1
+    year = @scheduled_time_date.getFullYear()
+    hour = @scheduled_time_date.getHours()
+    minutes = @scheduled_time_date.getMinutes()
+
+    if day < 10 then day = "0" + day
+    if month < 10 then month = "0" + month
+    if hour < 10 then hour = "0" + hour
+    if minutes < 10 then minutes = "0" + minutes
+
+    return day + month + year + hour + minutes
+
 
   via_airport: (val) ->
     if val['airport']?
