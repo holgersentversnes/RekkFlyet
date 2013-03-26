@@ -1,8 +1,8 @@
 ###
 
 File name: TrainStation.coffee
-Last updated: March 25th, 2013
-Version: 1.0
+Last updated: March 26th, 2013
+Version: 1.1
 
 Description:
   A train station is defined by its ID, name and position (both geographical and UTM coordinates). It contains one
@@ -15,7 +15,10 @@ Usage example:
   onStationUpdate = ( station ) =>
     console.log( station.name )
 
-  station = new TrainStation( onStationUpdate )
+  onStationUpdateFailure = ( error ) =>
+    console.log( error )
+
+  station = new TrainStation( onStationUpdate, onStationUpdateFailure )
   station.closestTo( 60, 11 )
 
 ###
@@ -29,7 +32,7 @@ class window.TrainStation
   @longitude
 
 
-  constructor: ( @onUpdated ) ->
+  constructor: ( @_onUpdated, @_onUpdateFailed ) ->
     @reset()
 
 
@@ -47,12 +50,15 @@ class window.TrainStation
   closestTo: ( latitude, longitude ) =>
     @latitude = latitude
     @longitude = longitude
-    jQuery.getJSON( "json/airporttrain_stations.json", @_saveClosestTrainStationInformation )
+    query = jQuery.getJSON( "json/airporttrain_stations.json", @_saveClosestTrainStationInformation )
+
+    if @_onUpdateFailed?
+      query.fail( @_onUpdateFailed )
 
 
   _notifyUpdated: () =>
-    if ( @onUpdated? )
-      @onUpdated( this )
+    if @_onUpdated?
+      @_onUpdated( this )
 
 
   _saveClosestTrainStationInformation: ( stations ) =>
