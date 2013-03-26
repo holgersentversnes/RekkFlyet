@@ -81,8 +81,8 @@ class window.TransportationSelectionScreen
       else if newFlights.length is 0
         $(uiFlightNotificationLabelId).text('Fant ingen fly med koden ' + val)
       else if newFlights.length is 1 and currentSearchValue != val and val.length > currentSearchValue.length
-        currentSearchValue = val
-        instance.onFlightSelected(val)
+        currentSearchValue = newFlights[0].flightId
+        instance.onFlightSelected(currentSearchValue)
         return
 
       for e in newFlights
@@ -91,10 +91,10 @@ class window.TransportationSelectionScreen
 
       $(uiFlightListId).delegate 'li', 'click', (val) ->
         val = val['currentTarget']['id']
+        currentSearchValue = val
         instance.onFlightSelected (val)
 
       $(uiFlightListId).listview('refresh')
-
       currentSearchValue = val
     catch error
       console.error(error)
