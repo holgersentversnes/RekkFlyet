@@ -14,21 +14,21 @@
         <script type="text/javascript" src="js/coffee/FlightManager.js"></script>
         <script type="text/javascript" src="js/coffee/TrainManager.js"></script>
         <script type="text/javascript" src="js/coffee/StartPage.js"></script>
+        <script type="text/javascript" src="js/coffee/TransportationSelectionScreen.js"></script>
         <script type="text/javascript" src="js/coffee/LoadScreen.js"></script>
         <title>Rekk Flyet</title>
     </head>
     <body>
         <script type="text/javascript">
             app.initialize();
+            $(document).ready(function() {
+                var transport = TransportationSelectionScreen.getInstance();
+                transport.start()
+            });
         </script>
 
-        <div data-role="page" id="loadScreen">
-            <script>
-                $(document).ready(function() {
-                    var loadScreen = new LoadScreen();
-                    loadScreen.start();
-                });
-            </script>
+        <!-- <div data-role="page" id="loadScreen">
+
             <div data-role="header" data-position="fixed"></div>
 
             <div data-role="content" id="LoadScreenContent">
@@ -36,20 +36,11 @@
 
             </div>
             <div data-role="footer" data-position="fixed"></div>
-        </div>
+        </div> -->
 
         <div data-role="page" id="page1">
-            <script>
-
-            </script>
-
             <div data-role="header" data-position="fixed">
-                <h3>
-                    Page 1
-                </h3>
-                <a data-role="button" href="#page2" data-icon="arrow-r" data-iconpos="right">
-                    Next
-                </a>
+                <h3>Velg transport</h3>
             </div>
             <div data-role="content">
                 <form data-role="fieldcontain" id="searchForm">

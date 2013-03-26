@@ -1,6 +1,5 @@
 class window.FlightManager
   instance = new FlightManager
-  instanceNum = 0
 
   flightArray = new Array()
   airportMap = new Array();
@@ -42,7 +41,8 @@ class window.FlightManager
         catch error
           return errorCallback('Feilet ved henting av fly')
 
-        if successCallback? then successCallback (flightArray)
+        #if successCallback? then
+        successCallback (flightArray)
 
   getFlightsById: (id, count) ->
     if not flightArray? then throw new Error('Har ikke hentet ned flyinformasjon')
