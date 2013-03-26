@@ -21,7 +21,11 @@
     }
 
     ThePosition.prototype.getPosition = function() {
-      return navigator.geolocation.getCurrentPosition(this.geolocationSuccess, this.geolocationError);
+      return navigator.geolocation.getCurrentPosition(this.geolocationSuccess, this.geolocationError, {
+        maximumAge: 3000,
+        timeout: 5000,
+        enableHighAccuracy: true
+      });
     };
 
     return ThePosition;

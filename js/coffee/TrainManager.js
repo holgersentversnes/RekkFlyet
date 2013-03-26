@@ -15,6 +15,8 @@
 
     TrainManager._RUTER_TRAIN_URL = "http://freberg.org/jsonpproxy.php?url=";
 
+    TrainManager._CHOSEN_FLIGHT_FROM_START_PAGE = null;
+
     TrainManager.prototype.setUserTrainStationID = function(trainStationID) {
       return _USER_TRAIN_STATION_ID = trainStationID;
     };
@@ -23,16 +25,16 @@
       return _USER_TIME_FROM_FLIGHT = flightTime;
     };
 
-    TrainManager.prototype.createEncodedProxyURL = function(trainStationID, flightTime) {
+    TrainManager.prototype.createEncodedProxyURL = function(trainStationID, flightObject) {
       this.setUserTrainStationID(trainStationID);
-      this.setUserTimeFromFlight(flightTime);
+      this.setUserTimeFromFlight(flightObject);
       if (_USER_TRAIN_STATION_ID !== 0 && _USER_TIME_FROM_FLIGHT !== 0) {
         return TrainManager._RUTER_TRAIN_URL += encodeURIComponent("http://api-test.trafikanten.no/TravelStage/GetDeparturesAdvanced/" + _USER_TRAIN_STATION_ID + "?time=" + _USER_TIME_FROM_FLIGHT + "&lines=FT&transporttypes=AirportTrain&proposals=1");
       }
     };
 
-    TrainManager.prototype.fetchTrains = function(trainStationID, flightTime) {
-      this.createEncodedProxyURL(trainStationID, flightTime);
+    TrainManager.prototype.fetchTrains = function(trainStationID, flightObject) {
+      this.createEncodedProxyURL(trainStationID, flightObject);
       return jQuery.ajax({
         url: TrainManager._RUTER_TRAIN_URL,
         dataType: 'jsonp',
@@ -56,12 +58,20 @@
             train.arrivalTime = arrTime;
             TrainManager._TRAIN_ARRAY.push(train);
           }
-          return console.log(TrainManager._TRAIN_ARRAY.length);
+          console.log(TrainManager._TRAIN_ARRAY.length);
+          return {
+            complete: function() {
+              return this.getPossibleTrainList(trainStationID, flightObject);
+            }
+          };
         }
       });
     };
 
-    TrainManager.prototype.getPossibleTrainList = function() {
+    TrainManager.prototype.getPossibleTrainList = function(trainStationID, flightObject) {
+      if (flightObject != null) {
+        console.log("asdl");
+      }
       return console.log("LOL");
     };
 

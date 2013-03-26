@@ -12,6 +12,7 @@ class window.TransportationSelectionScreen
   instance                    = new TransportationSelectionScreen();
   flightManager               = FlightManager.getInstance();
   currentSearchValue          = ""
+  currentFlight               = null
 
   start: () ->
     FlightManager.getInstance().fetchFlights(@fetchFlightsCallback, @errorCallback)
@@ -74,7 +75,6 @@ class window.TransportationSelectionScreen
       if not @isValidFlightIdFormat(val) then return
 
       newFlights = flightManager.getFlightsById(val, FLIGHT_LIST_MAX_COUNT)
-      console.dir(newFlights)
 
       if newFlights.length is FLIGHT_LIST_MAX_COUNT
         $(uiFlightNotificationLabelId).text('Rafiner søket for flere resultater')
@@ -108,7 +108,7 @@ class window.TransportationSelectionScreen
     instance.showGoButton()
     instance.disableGoButton()
 
-    selectedFlight = flightManager.getFlightsById(val, 1)
+    currentFlight = flightManager.getFlightsById(val, 1)
 
     $(uiFlightSearchId).on 'keyup', () ->
       newVal = $(uiFlightSearchId).val().trim()
@@ -119,6 +119,7 @@ class window.TransportationSelectionScreen
         instance.hideBaggageSelection()
         instance.showFlightSelection()
         instance.onFlightSearchChange(val)
+        currentFlight = null
 
   fetchFlightsCallback: (flightArray) ->
     console.dir(flightArray)
@@ -126,6 +127,8 @@ class window.TransportationSelectionScreen
   errorCallback: (error) ->
     console.error(error)
 
+  getCurrentFlight: () ->
+    return currentFlight
 
   isValidFlightIdFormat: (val) ->
     re = new RegExp("[A-z0-9]+")
