@@ -1,4 +1,4 @@
-class window.UrlBuilder
+class window.FlightUrlBuilder
 
   constructor: (@proxy, @url, airport) ->
     @url += "airport=" + airport.toUpperCase() + "&"

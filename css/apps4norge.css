@@ -1,3 +1,11 @@
+#LoadScreenContent {
+    margin: 50% auto 0 auto;
+    width: 50%;
+    vertical-align: middle;
+    text-align: center;
+}
+
+
 table.flightSearchResultElement {
     width:100%;
 }
