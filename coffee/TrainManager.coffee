@@ -13,7 +13,8 @@ class window.TrainManager
 
   createEncodedProxyURL: (trainStationID, flightObject) ->
     @setUserTrainStationID(trainStationID)
-    @setUserTimeFromFlight(flightObject) #TODO hent ut tiden
+    @setUserTimeFromFlight(flightObject.getRuterFlightFormat)
+    console.log("ASL")
 
     if _USER_TRAIN_STATION_ID != 0 and _USER_TIME_FROM_FLIGHT != 0
       TrainManager._RUTER_TRAIN_URL += encodeURIComponent("http://api-test.trafikanten.no/TravelStage/GetDeparturesAdvanced/" + _USER_TRAIN_STATION_ID + "?time=" + _USER_TIME_FROM_FLIGHT + "&lines=FT&transporttypes=AirportTrain&proposals=1");
