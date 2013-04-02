@@ -13,7 +13,6 @@
         <script type="text/javascript" src="js/coffee/FlightUrlBuilder.js"></script>
         <script type="text/javascript" src="js/coffee/FlightManager.js"></script>
         <script type="text/javascript" src="js/coffee/TrainManager.js"></script>
-        <script type="text/javascript" src="js/coffee/StartPage.js"></script>
         <script type="text/javascript" src="js/coffee/TransportationSelectionScreen.js"></script>
         <script type="text/javascript" src="js/coffee/LoadScreen.js"></script>
         <title>Rekk Flyet</title>
@@ -23,7 +22,14 @@
             app.initialize();
             $(document).ready(function() {
                 var transport = TransportationSelectionScreen.getInstance();
-                transport.start()
+                transport.start();
+
+                $("#searchButton").click(function () {
+                    console.log("Søk knapp trykket");
+                    //transport.trainManager.fetchTrains(2190400, transport.getCurrentFlight())
+                    transport.onSearchButtonPressed();
+                });
+
             });
         </script>
 
@@ -62,12 +68,9 @@
                     <label for="baggage_checkin">Har med sjekkin bagasje</label>
                 </fieldset>
 
-
-
             </div>
             <div data-role="footer" data-position="fixed">
-                <p>Footer Text</p>
-
+                <a href="index.html#page2" id="searchButton" data-role="button" data-icon="search">Søk!</a>
             </div>
 
 
@@ -82,7 +85,7 @@
 
             </div>
             <div data-role="content">
-
+                <ul data-role="listview" id="trainList" data-theme="d" data-inset="true" white-space="normal"></ul>
             </div>
             <div data-role="footer" data-position="fixed">
                 <p>Footer Text (Page 2)</p>

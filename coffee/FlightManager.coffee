@@ -3,7 +3,7 @@ class window.FlightManager
 
   flightArray = new Array()
   airportMap = new Array();
-  avinorFlightUrl = new FlightUrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(0).timeTo(24).direction('D').build() # Url for Avinor, using freberg super hax proxy. Flights
+  avinorFlightUrl = new FlightUrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(2).timeTo(24).direction('D').build() # Url for Avinor, using freberg super hax proxy. Flights
   avinorAirportUrl = new FlightUrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/airportNames.asp?', '').build() # Url for Avinor, using freberg super hax proxy. Airports
 
   fetchFlights: (successCallback, errorCallback) ->
@@ -32,14 +32,9 @@ class window.FlightManager
         try
           if flightArray?
             flightArray.sort (one, two) ->
-              if (one.flightId < two.flightId)
-                return -1
-              else if (one.flightId > two.flightId)
-                return 1
-              else
-                return 0
+              return Flight.sortByDate(one, two)
         catch error
-          return errorCallback('Feilet ved henting av fly')
+          return errorCallback('Feilet ved sortering av fly')
 
         #if successCallback? then
         successCallback (flightArray)
@@ -118,7 +113,7 @@ class Flight
     hours = @scheduled_time_date.getHours()
 
     day = @scheduled_time_date.getDay()
-    month = @scheduled_time_date.getMonth()
+    month = @scheduled_time_date.getMonth() + 1
 
     if minutes < 10 then minutes = "0" + minutes
     if hours <10 then hours = "0" + hours
@@ -183,3 +178,26 @@ class Flight
       @status_code = ""
       @status_time = ""
     return this
+
+  @sortByDate: (o1, o2) ->
+    try
+      if o1.scheduled_time_date > o2.scheduled_time_date
+        return 1
+      else if o1.scheduled_time_date < o2.scheduled_time_date
+        return -1
+      else
+        return 0
+    catch error
+      return -1
+
+  @sortByFlightId: (o1, o2) ->
+    try
+      if (o1.flightId < o2.flightId)
+        return -1
+      else if (o1.flightId > o2.flightId)
+        return 1
+      else
+        return 0
+    catch error
+      return -1
+
