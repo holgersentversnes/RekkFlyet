@@ -53,24 +53,18 @@
           try {
             if (flightArray != null) {
               flightArray.sort(function(one, two) {
-                if (one.flightId < two.flightId) {
-                  return -1;
-                } else if (one.flightId > two.flightId) {
-                  return 1;
-                } else {
-                  return 0;
-                }
+                return Flight.sortByDate(one, two);
               });
             }
           } catch (error) {
-            return errorCallback('Feilet ved henting av fly');
+            return errorCallback('Feilet ved sortering av fly');
           }
           return successCallback(flightArray);
         }
       });
     };
 
-    FlightManager.prototype.getFlightsById = function(id, count) {
+    FlightManager.prototype.getFlightsByFlightId = function(id, count) {
       var e, num, tmpLst, _i, _len;
       if (flightArray == null) {
         throw new Error('Har ikke hentet ned flyinformasjon');
@@ -89,6 +83,20 @@
         }
       }
       return tmpLst;
+    };
+
+    FlightManager.prototype.getFlightByUniqueId = function(id) {
+      var e, _i, _len;
+      if (flightArray == null) {
+        throw new Error('Har ikke hentet ned flyinformasjon');
+      }
+      for (_i = 0, _len = flightArray.length; _i < _len; _i++) {
+        e = flightArray[_i];
+        if (id === e.uniqueId) {
+          return e;
+        }
+      }
+      return null;
     };
 
     FlightManager.prototype.getAirportNameById = function(id, callback, errorCallback) {
@@ -164,17 +172,21 @@
   })();
 
   Flight = (function() {
+    var DOMESTIC, INTERNATIONAL;
+
+    INTERNATIONAL = 2 * 60 * 1000;
+
+    DOMESTIC = 45 * 60 * 1000;
 
     function Flight(flightObject) {
       var day, hours, minutes, month;
       this.uniqueId = flightObject['@attributes']['uniqueID'];
       this.flightId = flightObject['flight_id'].toUpperCase();
-      this.dom_int = flightObject['dom_int'];
       this.scheduled_time_date = new Date(flightObject['schedule_time']);
       minutes = this.scheduled_time_date.getMinutes();
       hours = this.scheduled_time_date.getHours();
       day = this.scheduled_time_date.getDay();
-      month = this.scheduled_time_date.getMonth();
+      month = this.scheduled_time_date.getMonth() + 1;
       if (minutes < 10) {
         minutes = "0" + minutes;
       }
@@ -194,28 +206,16 @@
       this.check_in(flightObject);
       this.gate(flightObject);
       this.status(flightObject);
+      this.domestic_international(flightObject);
     }
 
-    Flight.prototype.getRuterFlightFormat = function() {
-      var day, hour, minutes, month, year;
-      day = this.scheduled_time_date.getDate();
-      month = parseInt(this.scheduled_time_date.getMonth()) + 1;
-      year = this.scheduled_time_date.getFullYear();
-      hour = this.scheduled_time_date.getHours();
-      minutes = this.scheduled_time_date.getMinutes();
-      if (day < 10) {
-        day = "0" + day;
+    Flight.prototype.domestic_international = function(val) {
+      this.dom_int = val['dom_int'];
+      if (this.dom_int === 'D') {
+        return this.latestArrivalTimeAtAirport = new Date(this.scheduled_time_date.valueOf() - Flight.DOMESTIC);
+      } else if (this.dom_int === 'I') {
+        return this.latestArrivalTimeAtAirport = new Date(this.scheduled_time_date.valueOf() - Flight.INTERNATIONAL);
       }
-      if (month < 10) {
-        month = "0" + month;
-      }
-      if (hour < 10) {
-        hour = "0" + hour;
-      }
-      if (minutes < 10) {
-        minutes = "0" + minutes;
-      }
-      return day + month + year + hour + minutes;
     };
 
     Flight.prototype.via_airport = function(val) {
@@ -263,6 +263,56 @@
         this.status_time = "";
       }
       return this;
+    };
+
+    Flight.sortByDate = function(o1, o2) {
+      try {
+        if (o1.scheduled_time_date > o2.scheduled_time_date) {
+          return 1;
+        } else if (o1.scheduled_time_date < o2.scheduled_time_date) {
+          return -1;
+        } else {
+          return 0;
+        }
+      } catch (error) {
+        return -1;
+      }
+    };
+
+    Flight.sortByFlightId = function(o1, o2) {
+      try {
+        if (o1.flightId < o2.flightId) {
+          return -1;
+        } else if (o1.flightId > o2.flightId) {
+          return 1;
+        } else {
+          return 0;
+        }
+      } catch (error) {
+        return -1;
+      }
+    };
+
+    Flight.prototype.getRuterFlightFormat = function() {
+      var day, hour, minutes, month, year;
+      day = this.scheduled_time_date.getDate();
+      month = parseInt(this.scheduled_time_date.getMonth()) + 1;
+      year = this.scheduled_time_date.getFullYear();
+      hour = this.scheduled_time_date.getHours();
+      minutes = this.scheduled_time_date.getMinutes();
+      if (day < 10) {
+        day = "0" + day;
+      }
+      if (month < 10) {
+        month = "0" + month;
+      }
+      if (hour < 10) {
+        hour = "0" + hour;
+      }
+      if (minutes < 10) {
+        minutes = "0" + minutes;
+      }
+      return day + month + year + hour + minutes;
     };
 
     return Flight;

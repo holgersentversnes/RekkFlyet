@@ -3,7 +3,7 @@ class window.FlightManager
 
   flightArray = new Array()
   airportMap = new Array();
-  avinorFlightUrl = new FlightUrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(2).timeTo(24).direction('D').build() # Url for Avinor, using freberg super hax proxy. Flights
+  avinorFlightUrl = new FlightUrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/XmlFeed.asp?', 'OSL').timeFrom(0).timeTo(24).direction('D').build() # Url for Avinor, using freberg super hax proxy. Flights
   avinorAirportUrl = new FlightUrlBuilder('http://freberg.org/xmlproxy.php?url=', 'http://flydata.avinor.no/airportNames.asp?', '').build() # Url for Avinor, using freberg super hax proxy. Airports
 
   fetchFlights: (successCallback, errorCallback) ->
@@ -39,7 +39,7 @@ class window.FlightManager
         #if successCallback? then
         successCallback (flightArray)
 
-  getFlightsById: (id, count) ->
+  getFlightsByFlightId: (id, count) ->
     if not flightArray? then throw new Error('Har ikke hentet ned flyinformasjon')
 
     tmpLst = new Array()
@@ -54,6 +54,15 @@ class window.FlightManager
         break
 
     return tmpLst
+
+  getFlightByUniqueId: (id) ->
+    if not flightArray? then throw new Error('Har ikke hentet ned flyinformasjon')
+
+    for e in flightArray
+      if (id is e.uniqueId)
+        return e
+
+    return null
 
   getAirportNameById: (id, callback, errorCallback) ->
     try
@@ -102,11 +111,13 @@ class window.FlightManager
     return instance
 
 class Flight
+  INTERNATIONAL = 2 * 60 * 1000 # 3 hours
+  DOMESTIC = 45 * 60 * 1000 # 45 min
+
 # Constructor takes a json flight object as argument.
   constructor: (flightObject) ->
     @uniqueId = flightObject['@attributes']['uniqueID']
     @flightId = flightObject['flight_id'].toUpperCase()
-    @dom_int = flightObject['dom_int']
     @scheduled_time_date = new Date(flightObject['schedule_time'])
 
     minutes = @scheduled_time_date.getMinutes()
@@ -129,20 +140,14 @@ class Flight
     @check_in(flightObject)
     @gate(flightObject)
     @status(flightObject)
+    @domestic_international(flightObject)
 
-  getRuterFlightFormat: () ->
-    day = @scheduled_time_date.getDate()
-    month = parseInt(@scheduled_time_date.getMonth()) + 1
-    year = @scheduled_time_date.getFullYear()
-    hour = @scheduled_time_date.getHours()
-    minutes = @scheduled_time_date.getMinutes()
-
-    if day < 10 then day = "0" + day
-    if month < 10 then month = "0" + month
-    if hour < 10 then hour = "0" + hour
-    if minutes < 10 then minutes = "0" + minutes
-
-    return day + month + year + hour + minutes
+  domestic_international: (val) ->
+    @dom_int = val['dom_int']
+    if @dom_int is 'D'
+      @latestArrivalTimeAtAirport = new Date(@scheduled_time_date.valueOf() - Flight.DOMESTIC)
+    else if @dom_int is 'I'
+      @latestArrivalTimeAtAirport = new Date(@scheduled_time_date.valueOf() - Flight.INTERNATIONAL)
 
 
   via_airport: (val) ->
@@ -201,3 +206,16 @@ class Flight
     catch error
       return -1
 
+  getRuterFlightFormat: () ->
+    day = @scheduled_time_date.getDate()
+    month = parseInt(@scheduled_time_date.getMonth()) + 1
+    year = @scheduled_time_date.getFullYear()
+    hour = @scheduled_time_date.getHours()
+    minutes = @scheduled_time_date.getMinutes()
+
+    if day < 10 then day = "0" + day
+    if month < 10 then month = "0" + month
+    if hour < 10 then hour = "0" + hour
+    if minutes < 10 then minutes = "0" + minutes
+
+    return day + month + year + hour + minutes

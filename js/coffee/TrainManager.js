@@ -3,9 +3,11 @@
   var Train;
 
   window.TrainManager = (function() {
-    var _USER_TIME_FROM_FLIGHT, _USER_TRAIN_STATION_ID;
+    var instance, _USER_TIME_FROM_FLIGHT, _USER_TRAIN_STATION_ID;
 
     function TrainManager() {}
+
+    instance = new TrainManager;
 
     TrainManager._TRAIN_ARRAY;
 
@@ -27,13 +29,18 @@
 
     TrainManager.prototype.createEncodedProxyURL = function(trainStationID, flightObject) {
       this.setUserTrainStationID(trainStationID);
-      this.setUserTimeFromFlight(flightObject);
+      this.setUserTimeFromFlight(flightObject.getRuterFlightFormat());
       if (_USER_TRAIN_STATION_ID !== 0 && _USER_TIME_FROM_FLIGHT !== 0) {
-        return TrainManager._RUTER_TRAIN_URL += encodeURIComponent("http://api-test.trafikanten.no/TravelStage/GetDeparturesAdvanced/" + _USER_TRAIN_STATION_ID + "?time=" + _USER_TIME_FROM_FLIGHT + "&lines=FT&transporttypes=AirportTrain&proposals=1");
+        TrainManager._RUTER_TRAIN_URL += encodeURIComponent("http://api-test.trafikanten.no/TravelStage/GetDeparturesAdvanced/" + _USER_TRAIN_STATION_ID + "?time=" + _USER_TIME_FROM_FLIGHT + "&lines=FT&transporttypes=AirportTrain&proposals=1");
+        console.log("User train id: " + _USER_TRAIN_STATION_ID);
+        console.log("User time from flight: " + _USER_TIME_FROM_FLIGHT);
+        return console.log("Ruter URL = " + TrainManager._RUTER_TRAIN_URL);
       }
     };
 
     TrainManager.prototype.fetchTrains = function(trainStationID, flightObject) {
+      console.log("AOSDIJ");
+      console.log(flightObject);
       this.createEncodedProxyURL(trainStationID, flightObject);
       return jQuery.ajax({
         url: TrainManager._RUTER_TRAIN_URL,
@@ -58,21 +65,24 @@
             train.arrivalTime = arrTime;
             TrainManager._TRAIN_ARRAY.push(train);
           }
-          console.log(TrainManager._TRAIN_ARRAY.length);
-          return {
-            complete: function() {
-              return this.getPossibleTrainList(trainStationID, flightObject);
-            }
-          };
+          return console.log(TrainManager._TRAIN_ARRAY.length);
+        },
+        complete: function() {
+          return TrainManager.getInstance().getPossibleTrainList(trainStationID, flightObject);
         }
       });
     };
 
     TrainManager.prototype.getPossibleTrainList = function(trainStationID, flightObject) {
       if (flightObject != null) {
-        console.log("asdl");
+        console.log("KJØRER DENNE?");
+        console.dir(TrainManager._TRAIN_ARRAY);
+        return TrainManager._TRAIN_ARRAY;
       }
-      return console.log("LOL");
+    };
+
+    TrainManager.getInstance = function() {
+      return instance;
     };
 
     return TrainManager;
