@@ -9,13 +9,16 @@ class window.TransportationSelectionScreen
   uiBaggageCheckinId          = '#baggage_checkin'
   uiBaggageNonCheckinId       = '#baggage_nocheckin'
 
-  instance                    = new TransportationSelectionScreen();
-  flightManager               = FlightManager.getInstance();
+  instance                    = new TransportationSelectionScreen()
+  flightManager               = FlightManager.getInstance()
+  trainManager                = TrainManager.getInstance()
   currentSearchValue          = ""
   currentFlight               = null
 
+  #trainManager                = new TrainManager()
+
   start: () ->
-    FlightManager.getInstance().fetchFlights(@fetchFlightsCallback, @errorCallback)
+    flightManager.fetchFlights(@fetchFlightsCallback, @errorCallback)
     @showFlightSelection()
     @hideBaggageSelection()
     @hideGoButton()
@@ -52,12 +55,16 @@ class window.TransportationSelectionScreen
 
   showGoButton: () ->
 
+  onSearchButtonPressed: () ->
+    if currentFlight?
+      console.log(currentFlight)
+      trainManager.fetchTrains(2190400, currentFlight[0])
+
   hideGoButton: () ->
 
   enableGoButton: () ->
 
   disableGoButton: () ->
-
 
   onFlightSearchChange: (val) ->
     if not val? or not flightManager? then throw new Error('Noe gikk feil')
