@@ -93,4 +93,4 @@ class window.TrainStation
   _getGeometricalDistanceFrom: ( latitude, longitude ) =>
     deltaLatitude = @latitude - latitude
     deltaLongitude = @longitude - longitude
-    return Math.sqrt( Math.pow( deltaLatitude, 2 ), Math.pow( deltaLongitude, 2 ) )
+    return Math.sqrt( Math.pow( deltaLatitude, 2 ) + Math.pow( deltaLongitude, 2 ) )
