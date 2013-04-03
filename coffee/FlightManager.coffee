@@ -135,6 +135,7 @@ class Flight
     @gate(flightObject)
     @status(flightObject)
 
+  # TODO: KAN FJERNES
   getRuterFlightFormat: () ->
     day = @scheduled_time_date.getDate()
     month = parseInt(@scheduled_time_date.getMonth()) + 1
