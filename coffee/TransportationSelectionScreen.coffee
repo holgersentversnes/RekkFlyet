@@ -144,9 +144,10 @@ class window.TransportationSelectionScreen
       flightManager.getAirportNameById currentFlight.airport,
         (airportName) ->
           currentFlight.airport = airportName
-          trainManager.fetchTrains currentTrainStationId, currentFlight
-
-          $.mobile.loading 'hide',
+          trainManager.fetchTrains currentTrainStationId, currentFlight, (trainArray) ->
+            $.mobile.loading 'hide'
+            rs = new ResultScreen()
+            rs.showTrainInResultList(currentFlight, trainArray)
         (error) ->
           if errorReporter? and errorReporter not null then errorReporter 'Feilet ved henting av toginformasjon'
           $.mobile.loading 'hide'
