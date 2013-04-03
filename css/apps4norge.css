@@ -26,3 +26,22 @@ table.flightSearchResultElement {
 .ui-controlgroup-controls {
     width: 100%;
 }
+
+#splash * {
+    color: #666;
+    text-align: center;
+    font-size: 10pt;
+}
+
+#splash h1 {
+    font-size: 2em;
+    line-height: 3em;
+}
+
+#splash img {
+    width: 70%;
+}
+
+#splash p {
+    line-height: 3em;
+}
