@@ -8,6 +8,7 @@ class window.LoadScreen
       TrainStationManager.getInstance().fetchAllTrainStations()
       flightManager = FlightManager.getInstance()
       flightManager.fetchFlights(instance.onLoadComplete, instance.onLoadFail)
+      #TransportationSelectionScreen.getInstance().reset()
     else
       $(notificationLabelId).val('Du må være koblet til internett for å bruke denne applikasjonen')
 

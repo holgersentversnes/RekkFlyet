@@ -99,8 +99,9 @@ class window.TransportationSelectionScreen
     $(uiFlightSearchId).unbind('keyup')
     $(uiFlightSearchId).on 'keyup', (element) ->
       newValue = $(uiFlightSearchId).val()
+      #console.log(newValue)
       instance.onFlightSearchChange(newValue)
-    @onFlightSearchChange("")
+    instance.onFlightSearchChange("")
     currentFlight = null
 
   hideFlightSelection: () ->
@@ -116,14 +117,14 @@ class window.TransportationSelectionScreen
     currentSearchValue = "1"
     currentFlight = null
     currentTrainStationId = "0"
-    @hideBaggageSelection()
-    @hideTrainStationSelection()
-    @disableSearchButton()
-    @showFlightSelection()
-    $(uiSearchButton).on 'click', @onSearchButtonClick
-    $(uiClosestTrainStationButton).on 'click', @onClosestTrainStationClick
-    $(uiTrainDropDown).on 'change.stationChange', @onTrainDropDownChange
-    @fillTrainDropDown()
+    instance.showFlightSelection()
+    instance.hideBaggageSelection()
+    instance.hideTrainStationSelection()
+    instance.disableSearchButton()
+    $(uiSearchButton).on 'click', instance.onSearchButtonClick
+    $(uiClosestTrainStationButton).on 'click', instance.onClosestTrainStationClick
+    $(uiTrainDropDown).on 'change.stationChange', instance.onTrainDropDownChange
+    instance.fillTrainDropDown()
 
   onClosestTrainStationClick: () ->
     lat = geoLocationManager.getCurrentLocation()['coords']['latitude']
