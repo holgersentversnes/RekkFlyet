@@ -146,7 +146,7 @@ class window.TransportationSelectionScreen
           currentFlight.airport = airportName
           trainManager.fetchTrains currentTrainStationId, currentFlight
 
-          $.mobile.loading 'hide'
+          $.mobile.loading 'hide',
         (error) ->
           if errorReporter? and errorReporter not null then errorReporter 'Feilet ved henting av toginformasjon'
           $.mobile.loading 'hide'
