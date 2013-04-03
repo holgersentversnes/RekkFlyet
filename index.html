@@ -13,6 +13,7 @@
         <script type="text/javascript" src="js/coffee/FlightUrlBuilder.js"></script>
         <script type="text/javascript" src="js/coffee/FlightManager.js"></script>
         <script type="text/javascript" src="js/coffee/TrainManager.js"></script>
+        <script type="text/javascript" src="js/coffee/GeoLocationManager.js"></script>
         <script type="text/javascript" src="js/coffee/TransportationSelectionScreen.js"></script>
         <script type="text/javascript" src="js/coffee/LoadScreen.js"></script>
         <title>Rekk Flyet</title>
@@ -22,7 +23,7 @@
             app.initialize();
             $(document).ready(function() {
                 var transport = TransportationSelectionScreen.getInstance();
-                transport.start();
+                transport.reset();
 
                 $("#searchButton").click(function () {
                     console.log("Søk knapp trykket");

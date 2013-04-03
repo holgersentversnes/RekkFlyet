@@ -12,36 +12,103 @@ class window.TransportationSelectionScreen
   instance                    = new TransportationSelectionScreen()
   flightManager               = FlightManager.getInstance()
   trainManager                = TrainManager.getInstance()
-  currentSearchValue          = ""
+  geoLocationManager          = GeoLocationManager.getInstance()
+  errorReporter               = null
+
+  currentSearchValue          = "1"
   currentFlight               = null
 
-  #trainManager                = new TrainManager()
+  constructor: () ->
+    FlightManager.getInstance().fetchFlights()
 
-  start: () ->
-    flightManager.fetchFlights(@fetchFlightsCallback, @errorCallback)
-    @showFlightSelection()
-    @hideBaggageSelection()
-    @hideGoButton()
-    @hideTrainStationSelection()
-    @disableGoButton()
+  onFlightSearchChange: (newVal) ->
+    if not newVal? or not flightManager?
+      if errorReporter? or errorReporter not null then errorReporter ("Verdi eller fly er udefinert.")
+
+    try
+      newVal = newVal.trim()
+      newVal = newVal.toUpperCase()
+
+      if newVal is currentSearchValue and newVal.length is 0 then return
+
+      $(uiFlightListId).undelegate 'li', 'click'
+      $(uiFlightListId).empty()
+      $(uiFlightNotificationLabelId).text('')
+
+      if newVal.length is 0 or not $(uiFlightSearchDivId).is(':visible') then return
+
+      newFlights = flightManager.getFlightsByFlightId(newVal, FLIGHT_LIST_MAX_COUNT)
+
+      if newFlights.length is FLIGHT_LIST_MAX_COUNT
+        $(uiFlightNotificationLabelId).text('Rafiner søket for flere resultater')
+      else if newFlights.length is 0
+        $(uiFlightNotificationLabelId).text('Fant ingen fly med koden ' + newVal)
+      else if newFlights.length is 1 and currentSearchValue != newVal and newVal.length > currentSearchValue.length
+        currentSearchValue = newFlights[0].flightId
+        instance.onFlightSelected(flightManager.getFlightByUniqueId(newFlights[0].uniqueId))
+        return
+
+      for e in newFlights
+        if e?
+          $(uiFlightListId).append('<li id=' + e.uniqueId + '><table class="flightSearchResultElement"><tr><td>' + e.flightId + '</td><td>' + e.schedule_time + '</td><td>' + e.airport + '</td></tr></table></li>')
+
+      $(uiFlightListId).listview('refresh')
+      currentSearchValue = newVal
+
+      $(uiFlightListId).delegate 'li', 'click', (selected) ->
+        selected = selected['currentTarget']['id']
+        flight = flightManager.getFlightByUniqueId(selected)
+        instance.onFlightSelected (flight)
+
+    catch error
+      #if errorReporter? or errorReporter not null then errorReporter('Feil ved søk på fly')
+      console.log(error)
+
+  onFlightSelected: (flight) ->
+    currentFlight = flight
+    currentSearchValue = flight.flightId
+    $(uiFlightSearchId).val(flight.flightId)
+    @hideFlightSelection()
+    @showBaggageSelection()
+    @showTrainStationSelection()
+    @disableSearchButton()
+    console.log("Current Flight Unique ID: " + flight.uniqueId)
+
+    $(uiFlightSearchId).on 'keyup', () ->
+      newVal = $(uiFlightSearchId).val().trim()
+      if newVal != currentSearchValue
+        instance.reset()
 
   showFlightSelection: () ->
     $(uiFlightSearchDivId).show()
-    #$(uiFlightSearchId).unbind('keyup')
-    $(uiFlightSearchId).unbind()
-
-    $(uiFlightSearchId).on 'keyup', (e) ->
-      #console.log('KeyUp: ' + $(uiFlightSearchId).val())
-      #console.log(e)
-      instance.onFlightSearchChange($(uiFlightSearchId).val())
-
-    $(uiFlightSearchId).on 'change', (e) ->
-      #console.log('Change: ' + $(uiFlightSearchId).val())
-      #console.log(e)
+    $(uiFlightSearchId).unbind('keyup')
+    $(uiFlightSearchId).on 'keyup', (element) ->
+      newValue = $(uiFlightSearchId).val()
+      instance.onFlightSearchChange(newValue)
+    @onFlightSearchChange("")
+    currentFlight = null
 
   hideFlightSelection: () ->
     $(uiFlightSearchDivId).hide()
     $(uiFlightSearchId).unbind('keyup')
+    $(uiFlightListId).empty()
+    $(uiFlightListId).listview('refresh')
+
+  reset: () ->
+    currentSearchValue = "1"
+    currentFlight = null
+    @hideBaggageSelection()
+    @hideTrainStationSelection()
+    @disableSearchButton()
+    @showFlightSelection()
+
+  onSearchButtonPressed: () ->
+    if currentFlight?
+      console.log(currentFlight)
+      trainManager.fetchTrains(2190400, currentFlight)
+
+  @getInstance: () ->
+    return instance
 
   showBaggageSelection: () ->
     $(uiBaggageDivId).show()
@@ -53,93 +120,7 @@ class window.TransportationSelectionScreen
 
   hideTrainStationSelection: () ->
 
-  showGoButton: () ->
+  enableSearchButton: () ->
 
-  onSearchButtonPressed: () ->
-    if currentFlight?
-      console.log(currentFlight)
-      trainManager.fetchTrains(2190400, currentFlight[0])
+  disableSearchButton: () ->
 
-  hideGoButton: () ->
-
-  enableGoButton: () ->
-
-  disableGoButton: () ->
-
-  onFlightSearchChange: (val) ->
-    if not val? or not flightManager? then throw new Error('Noe gikk feil')
-
-    try
-      val = val.trim()
-      val = val.toUpperCase()
-
-      if val is currentSearchValue then return
-
-      $(uiFlightListId).empty()
-      $(uiFlightNotificationLabelId).text('')
-
-      if val.length is 0 or not $(uiFlightSearchDivId).is(':visible') then return
-      if not @isValidFlightIdFormat(val) then return
-
-      newFlights = flightManager.getFlightsById(val, FLIGHT_LIST_MAX_COUNT)
-
-      if newFlights.length is FLIGHT_LIST_MAX_COUNT
-        $(uiFlightNotificationLabelId).text('Rafiner søket for flere resultater')
-      else if newFlights.length is 0
-        $(uiFlightNotificationLabelId).text('Fant ingen fly med koden ' + val)
-      else if newFlights.length is 1 and currentSearchValue != val and val.length > currentSearchValue.length
-        currentSearchValue = newFlights[0].flightId
-        instance.onFlightSelected(currentSearchValue)
-        return
-
-      for e in newFlights
-        if e?
-          $(uiFlightListId).append('<li id=' + e.flightId + '><table class="flightSearchResultElement"><tr><td>' + e.flightId + '</td><td>' + e.schedule_time + '</td><td>' + e.airport + '</td></tr></table></li>')
-
-      $(uiFlightListId).delegate 'li', 'click', (val) ->
-        val = val['currentTarget']['id']
-        currentSearchValue = val
-        instance.onFlightSelected (val)
-
-      $(uiFlightListId).listview('refresh')
-      currentSearchValue = val
-    catch error
-      console.error(error)
-      throw error
-
-  onFlightSelected: (val) ->
-    $(uiFlightSearchId).val(val)
-    instance.hideFlightSelection()
-    instance.showBaggageSelection()
-    instance.showTrainStationSelection()
-    instance.showGoButton()
-    instance.disableGoButton()
-
-    currentFlight = flightManager.getFlightsById(val, 1)
-
-    $(uiFlightSearchId).on 'keyup', () ->
-      newVal = $(uiFlightSearchId).val().trim()
-      if newVal != currentSearchValue
-        instance.disableGoButton()
-        instance.hideGoButton()
-        instance.hideTrainStationSelection()
-        instance.hideBaggageSelection()
-        instance.showFlightSelection()
-        instance.onFlightSearchChange(val)
-        currentFlight = null
-
-  fetchFlightsCallback: (flightArray) ->
-    console.dir(flightArray)
-
-  errorCallback: (error) ->
-    console.error(error)
-
-  getCurrentFlight: () ->
-    return currentFlight
-
-  isValidFlightIdFormat: (val) ->
-    re = new RegExp("[A-z0-9]+")
-    return true
-
-  @getInstance: () ->
-    return instance
