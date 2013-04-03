@@ -26,8 +26,6 @@
     $(document).ready(function() {
         var transport = TransportationSelectionScreen.getInstance();
         transport.reset();
-        //transport.onTrainStationSelected();
-
     });
 </script>
 
@@ -97,11 +95,15 @@
 
     </div>
     <div data-role="content">
+        <h3 class="resultFlightHeader">Din flyavgang:</h3>
         <div id="flightInfo">
 
         </div>
 
-        <ul data-role="listview" id="trainList" data-theme="d" data-inset="true" white-space="normal"></ul>
+        <h3 class="resultTrainHeader"></h3>
+           <div id="trainTableWrapper">
+               <!-- Tabell blir fyllt i ResultScreen.coffee -->
+           </div>
     </div>
     <div data-role="footer" data-position="fixed">
         <p>Footer Text (Page 2)</p>

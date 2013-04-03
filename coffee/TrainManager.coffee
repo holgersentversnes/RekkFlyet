@@ -40,6 +40,8 @@ class window.TrainManager
     @getDateNowInRuterFormat()
 
     if _USER_TRAIN_STATION_ID != 0 and _USER_TIME_FROM_FLIGHT != 0
+      #TrainManager._RUTER_TRAIN_URL = ""
+      TrainManager._RUTER_TRAIN_URL = "http://freberg.org/jsonpproxy.php?url="
       TrainManager._RUTER_TRAIN_URL += encodeURIComponent("http://api-test.trafikanten.no/TravelStage/GetDeparturesAdvanced/" + _USER_TRAIN_STATION_ID + "?time=" + _USER_TIME_FROM_FLIGHT + "&lines=FT&transporttypes=AirportTrain&proposals=1");
       console.log("User train id: " + _USER_TRAIN_STATION_ID)
       console.log("User time from flight: " + _USER_TIME_FROM_FLIGHT)
@@ -47,8 +49,6 @@ class window.TrainManager
 
   #Denne skal kalles fra StartPage
   fetchTrains: (trainStationID, flightObject, onSuccessCallback) ->
-    console.log("AOSDIJ")
-    console.log(flightObject)
     @createEncodedProxyURL(trainStationID, flightObject)
     jQuery.ajax
       url: TrainManager._RUTER_TRAIN_URL,
@@ -61,6 +61,12 @@ class window.TrainManager
 
       success: (data) ->
         returnData = JSON.parse(data)
+
+        #console.log("UNDEFINED??!?!?!" + TrainManager._TRAIN_ARRAY)
+
+        #if not TrainManager._TRAIN_ARRAY?
+        #  TrainManager._TRAIN_ARRAY = null
+
         TrainManager._TRAIN_ARRAY = new Array()
 
         for t in returnData

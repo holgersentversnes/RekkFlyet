@@ -135,6 +135,7 @@ class window.TransportationSelectionScreen
       instance.disableSearchButton()
     else
       currentTrainStationId = $(uiTrainDropDown).val()
+      console.log("TSID: " + currentTrainStationId)
       instance.enableSearchButton()
 
 
@@ -146,6 +147,7 @@ class window.TransportationSelectionScreen
   onSearchButtonClickAirportSuccess: (airportName) ->
     console.log(airportName)
     currentFlight.airportName = airportName
+    console.log("TSID SAMME: " + currentTrainStationId)
     trainManager.fetchTrains currentTrainStationId, currentFlight, instance.onSearchButtonClickTrainSuccess, instance.onSearchButtonClickError
 
   onSearchButtonClickError: (message) ->

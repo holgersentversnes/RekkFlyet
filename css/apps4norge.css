@@ -26,3 +26,55 @@ table.flightSearchResultElement {
 .ui-controlgroup-controls {
     width: 100%;
 }
+
+.resultFlightHeader {
+    margin: 0 0 0 0;
+    font-family: "Verdana";
+    font-weight: lighter;
+    font-size: 18px;
+}
+
+.resultTrainHeader {
+    margin: 10px 0 10px 0;
+    font-family: "Verdana";
+    font-weight: lighter;
+    font-size: 18px;
+}
+
+#resultFlightContent {
+    font-size: 14px;
+    margin: 0 0 0 10px;
+}
+
+#trainTableWrapper {
+    width: 100%;
+}
+
+#trainTable {
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    font-size: 12px;
+    background: #fff;
+    margin: 0 auto;
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    text-shadow: none !important;
+}
+
+#trainTable th {
+    font-size: 14px;
+    font-weight: normal;
+    color: #B10D3F;
+    padding: 10px 0;
+    border-bottom: 2px solid #333;
+}
+
+#trainTable td {
+    border-bottom: 1px solid #ccc;
+    color: #333;
+    padding: 6px 8px;
+}
+
+#trainTable tbody tr:hover td {
+    color: #009;
+}
