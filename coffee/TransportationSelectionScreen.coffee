@@ -17,6 +17,7 @@ class window.TransportationSelectionScreen
   flightManager               = FlightManager.getInstance()
   trainManager                = TrainManager.getInstance()
   geoLocationManager          = GeoLocationManager.getInstance()
+  trainStationManager         = TrainStationManager.getInstance()
   errorReporter               = null
 
   currentSearchValue          = "1"
@@ -26,17 +27,14 @@ class window.TransportationSelectionScreen
   constructor: () ->
     FlightManager.getInstance().fetchFlights()
     GeoLocationManager.getInstance().fetchLocation(false)
+    TrainStationManager.getInstance().fetchAllTrainStations()
 
   fillTrainDropDown: () ->
-    jQuery.getJSON "json/airporttrain_stations.json", (stations) ->
-      $(uiTrainDropDown).empty()
-      $(uiTrainDropDown).append('<option value="0" selected="selected">Velg togstasjon...</option>')
-      for stationInfo in stations
-        ts = new TrainStation()
-        ts._setInformation(stationInfo)
-        $(uiTrainDropDown).append('<option value="' + ts.id + '">' + ts.name + '</option>')
-      $('select').selectmenu('refresh', true)
-
+    $(uiTrainDropDown).empty()
+    $(uiTrainDropDown).append('<option value="0" selected="selected">Velg togstasjon...</option>')
+    for e in trainStationManager.getAllTrainStations()
+      $(uiTrainDropDown).append('<option value="' + e.id + '">' + e.name + '</option>')
+    $('select').selectmenu('refresh', true)
 
   onFlightSearchChange: (newVal) ->
     if not newVal? or not flightManager?
@@ -114,7 +112,6 @@ class window.TransportationSelectionScreen
     $(uiSearchButton).off 'click'
     $(uiClosestTrainStationButton).off 'click'
     $(uiTrainDropDown).off 'change.stationChange'
-    console.log("aSD")
     currentSearchValue = "1"
     currentFlight = null
     currentTrainStationId = "0"
@@ -128,7 +125,11 @@ class window.TransportationSelectionScreen
     $(uiTrainDropDown).on 'change.stationChange', @onTrainDropDownChange
 
   onClosestTrainStationClick: () ->
-
+    lat = geoLocationManager.getCurrentLocation()['coords']['latitude']
+    long = geoLocationManager.getCurrentLocation()['coords']['longitude']
+    closest = trainStationManager.getClosestTrainStation(lat, long)
+    $(uiTrainDropDown).val(closest.id)
+    $('select').selectmenu('refresh', true)
 
   onTrainDropDownChange: () ->
     if $(uiTrainDropDown).val() is "0"
