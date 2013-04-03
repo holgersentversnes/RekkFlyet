@@ -24,10 +24,8 @@
 <script type="text/javascript">
     app.initialize();
     $(document).ready(function() {
-        var transport = TransportationSelectionScreen.getInstance();
-        transport.reset();
-        //transport.onTrainStationSelected();
-
+        var loadScreen = LoadScreen.getInstance();
+        loadScreen.start();
     });
 </script>
 
@@ -42,21 +40,21 @@
     <div data-role="footer" data-position="fixed"></div>
 </div> -->
 
-<!--
+
 <div data-role="page" id="splash">
 	<div data-role="content">
 		<h1>Rekk Flyet</h1>
 		<img src="img/loading.gif" alt="" />
-		<p>Laster flydata...</p>
+		<p id="loadingText">Laster flydata...</p>
 	</div>
 </div>
--->
-<div data-role="page" id="page1">
+
+<div data-role="page" id="transportationSelectionScreen">
+
     <div data-role="header" data-position="fixed">
         <h3>Velg transport</h3>
     </div>
     <div data-role="content">
-
         <!-- FLIGHT START -->
 
         <form data-role="fieldcontain" id="searchForm">
@@ -92,13 +90,11 @@
         <a href="index.html#page2" class="ui-disabled" id="searchButton" data-role="button" data-icon="search">Søk!</a>
         <a href="#about" id="aboutButton" data-role="button" data-icon="info">About</a>
     </div>
-
-
 </div>
 
 <!-- RESULT VIEW -->
 
-<div data-role="page" id="page2">
+<div data-role="page" id="resultsScreen">
     <div data-role="header" data-position="fixed">
         <h3>
             Page 2

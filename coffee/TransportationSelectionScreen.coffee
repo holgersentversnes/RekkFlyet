@@ -25,16 +25,17 @@ class window.TransportationSelectionScreen
   currentTrainStationId       = "0"
 
   constructor: () ->
-    FlightManager.getInstance().fetchFlights()
-    GeoLocationManager.getInstance().fetchLocation(false)
-    TrainStationManager.getInstance().fetchAllTrainStations()
+    #FlightManager.getInstance().fetchFlights()
+    #GeoLocationManager.getInstance().fetchLocation(false)
+    #TrainStationManager.getInstance().fetchAllTrainStations()
 
   fillTrainDropDown: () ->
     $(uiTrainDropDown).empty()
     $(uiTrainDropDown).append('<option value="0" selected="selected">Velg togstasjon...</option>')
     for e in trainStationManager.getAllTrainStations()
       $(uiTrainDropDown).append('<option value="' + e.id + '">' + e.name + '</option>')
-    $('select').selectmenu('refresh', true)
+    $('#trainDropDown').selectmenu();
+    $('#trainDropDown').selectmenu('refresh', true)
 
   onFlightSearchChange: (newVal) ->
     if not newVal? or not flightManager?
@@ -115,7 +116,6 @@ class window.TransportationSelectionScreen
     currentSearchValue = "1"
     currentFlight = null
     currentTrainStationId = "0"
-    @fillTrainDropDown()
     @hideBaggageSelection()
     @hideTrainStationSelection()
     @disableSearchButton()
@@ -123,6 +123,7 @@ class window.TransportationSelectionScreen
     $(uiSearchButton).on 'click', @onSearchButtonClick
     $(uiClosestTrainStationButton).on 'click', @onClosestTrainStationClick
     $(uiTrainDropDown).on 'change.stationChange', @onTrainDropDownChange
+    @fillTrainDropDown()
 
   onClosestTrainStationClick: () ->
     lat = geoLocationManager.getCurrentLocation()['coords']['latitude']
@@ -130,6 +131,7 @@ class window.TransportationSelectionScreen
     closest = trainStationManager.getClosestTrainStation(lat, long)
     $(uiTrainDropDown).val(closest.id)
     $('select').selectmenu('refresh', true)
+    instance.onTrainDropDownChange()
 
   onTrainDropDownChange: () ->
     if $(uiTrainDropDown).val() is "0"
