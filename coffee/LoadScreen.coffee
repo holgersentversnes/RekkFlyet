@@ -8,15 +8,18 @@ class window.LoadScreen
       TrainStationManager.getInstance().fetchAllTrainStations()
       flightManager = FlightManager.getInstance()
       flightManager.fetchFlights(instance.onLoadComplete, instance.onLoadFail)
-      #TransportationSelectionScreen.getInstance().reset()
+
     else
       $(notificationLabelId).val('Du må være koblet til internett for å bruke denne applikasjonen')
 
 
   onLoadComplete: (arr) ->
     console.dir(arr)
-    window.location.hash = "#transportationSelectionScreen"
+    $.mobile.changePage("#transportationSelectionScreen", "fade");
+    #window.location.hash = "#transportationSelectionScreen"
     TransportationSelectionScreen.getInstance().reset()
+    #TransportationSelectionScreen.getInstance().reset()
+
 
   onLoadFail: (err) ->
     $(notificationLabelId).val('Feil ved henting av flydata')
