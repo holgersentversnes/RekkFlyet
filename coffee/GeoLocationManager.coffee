@@ -2,8 +2,8 @@ class window.GeoLocationManager
   _location = null
   _instance = new GeoLocationManager()
 
-  constructor: () ->
-    @getPosition()
+  constructor: (useHighAccuracy = false) ->
+    navigator.geolocation.getCurrentPosition(@onPositionSuccess, @onPositionError, { maximumAge: 10 * 60 * 1000, timeout: 5000, enableHighAccuracy: useHighAccuracy })
 
   getCurrentLocation: () ->
     return _location
@@ -13,9 +13,6 @@ class window.GeoLocationManager
 
   onPositionError: (error) ->
     console.log(error)
-
-  getPosition: (useHighAccuracy = false) ->
-    navigator.geolocation.getCurrentPosition(@onPositionSuccess, @onPositionError, { maximumAge: 10 * 60 * 1000, timeout: 5000, enableHighAccuracy: useHighAccuracy })
 
   @getInstance: () ->
     return _instance

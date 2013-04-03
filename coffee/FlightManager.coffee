@@ -26,7 +26,7 @@ class window.FlightManager
             tmpFlight = new Flight(f)
             flightArray.push(tmpFlight)
         catch error
-          return errorCallback('Feilet ved henting av fly')
+          if errorCallback? then return errorCallback('Feilet ved henting av fly')
 
       complete: () ->
         try
@@ -34,10 +34,9 @@ class window.FlightManager
             flightArray.sort (one, two) ->
               return Flight.sortByDate(one, two)
         catch error
-          return errorCallback('Feilet ved sortering av fly')
+          if errorCallback? then return errorCallback('Feilet ved sortering av fly')
 
-        #if successCallback? then
-        successCallback (flightArray)
+        if successCallback? then successCallback (flightArray)
 
   getFlightsByFlightId: (id, count) ->
     if not flightArray? then throw new Error('Har ikke hentet ned flyinformasjon')

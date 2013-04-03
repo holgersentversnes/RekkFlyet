@@ -46,7 +46,9 @@
             }
             return _results;
           } catch (error) {
-            return errorCallback('Feilet ved henting av fly');
+            if (errorCallback != null) {
+              return errorCallback('Feilet ved henting av fly');
+            }
           }
         },
         complete: function() {
@@ -57,9 +59,13 @@
               });
             }
           } catch (error) {
-            return errorCallback('Feilet ved sortering av fly');
+            if (errorCallback != null) {
+              return errorCallback('Feilet ved sortering av fly');
+            }
           }
-          return successCallback(flightArray);
+          if (successCallback != null) {
+            return successCallback(flightArray);
+          }
         }
       });
     };
