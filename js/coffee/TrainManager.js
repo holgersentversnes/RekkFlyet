@@ -11,6 +11,8 @@
 
     TrainManager._TRAIN_ARRAY;
 
+    TrainManager._TRAINS_TO_SHOW_ARRAY;
+
     _USER_TRAIN_STATION_ID = 0;
 
     _USER_TIME_FROM_FLIGHT = 0;
@@ -24,12 +26,36 @@
     };
 
     TrainManager.prototype.setUserTimeFromFlight = function(flightTime) {
-      return _USER_TIME_FROM_FLIGHT = flightTime;
+      _USER_TIME_FROM_FLIGHT = "020420131452";
+      return console.log("Sjekk denne tiden: " + TrainManager._USER_TIME_FROM_FLIGHT);
+    };
+
+    TrainManager.prototype.getDateNowInRuterFormat = function() {
+      var day, hour, minutes, month, today, year;
+      today = new Date();
+      day = today.getDate();
+      month = parseInt(today.getMonth()) + 1;
+      year = today.getFullYear();
+      hour = today.getHours();
+      minutes = today.getMinutes();
+      if (day < 10) {
+        day = "0" + day;
+      }
+      if (month < 10) {
+        month = "0" + month;
+      }
+      if (hour < 10) {
+        hour = "0" + hour;
+      }
+      if (minutes < 10) {
+        minutes = "0" + minutes;
+      }
+      return _USER_TIME_FROM_FLIGHT = day + month + year + hour + minutes;
     };
 
     TrainManager.prototype.createEncodedProxyURL = function(trainStationID, flightObject) {
       this.setUserTrainStationID(trainStationID);
-      this.setUserTimeFromFlight(flightObject.getRuterFlightFormat());
+      this.getDateNowInRuterFormat();
       if (_USER_TRAIN_STATION_ID !== 0 && _USER_TIME_FROM_FLIGHT !== 0) {
         TrainManager._RUTER_TRAIN_URL += encodeURIComponent("http://api-test.trafikanten.no/TravelStage/GetDeparturesAdvanced/" + _USER_TRAIN_STATION_ID + "?time=" + _USER_TIME_FROM_FLIGHT + "&lines=FT&transporttypes=AirportTrain&proposals=1");
         console.log("User train id: " + _USER_TRAIN_STATION_ID);
@@ -38,7 +64,7 @@
       }
     };
 
-    TrainManager.prototype.fetchTrains = function(trainStationID, flightObject) {
+    TrainManager.prototype.fetchTrains = function(trainStationID, flightObject, onSuccessCallback) {
       console.log("AOSDIJ");
       console.log(flightObject);
       this.createEncodedProxyURL(trainStationID, flightObject);
@@ -68,9 +94,54 @@
           return console.log(TrainManager._TRAIN_ARRAY.length);
         },
         complete: function() {
-          return TrainManager.getInstance().getPossibleTrainList(trainStationID, flightObject);
+          TrainManager.getInstance().getPossibleTrainList(trainStationID, flightObject);
+          return TrainManager.getInstance().getTrainsThatArrivesBefore(flightObject.scheduled_time_date, 5, function(trainList) {
+            return onSuccessCallback(trainList);
+          });
         }
       });
+    };
+
+    TrainManager.prototype.getTrainsThatArrivesBefore = function(arrivalTimeAtGardermoen, numberOfTrainDepartures, onTrainListCompleteCallback) {
+      var MINUTE, arrivalDate, counter, f, i, timeDiff, trainArrivalDate, trainz, _i, _j, _k, _len, _ref, _ref1;
+      TrainManager._TRAINS_TO_SHOW_ARRAY = new Array();
+      counter = 1;
+      console.log("A");
+      _ref = TrainManager._TRAIN_ARRAY;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        f = _ref[_i];
+        console.log("B");
+        trainArrivalDate = new Date(f.arrivalTime);
+        arrivalDate = new Date(arrivalTimeAtGardermoen);
+        console.log("trainDate:" + f.arrivalTime);
+        console.log("arrivalDate:" + arrivalDate);
+        MINUTE = 1000 * 60;
+        timeDiff = Math.round((arrivalDate.getTime() - trainArrivalDate.getTime()) / MINUTE);
+        console.log("timeDiff: " + timeDiff);
+        if (timeDiff <= 60 && timeDiff > 0) {
+          console.log("C");
+          if (counter >= numberOfTrainDepartures) {
+            console.log("D");
+            for (i = _j = counter, _ref1 = counter - numberOfTrainDepartures; counter <= _ref1 ? _j < _ref1 : _j > _ref1; i = counter <= _ref1 ? ++_j : --_j) {
+              trainz = TrainManager._TRAIN_ARRAY[i];
+              TrainManager._TRAINS_TO_SHOW_ARRAY.push(trainz);
+            }
+          } else if (counter < numberOfTrainDepartures) {
+            console.log("E");
+            for (i = _k = counter; counter <= 0 ? _k < 0 : _k > 0; i = counter <= 0 ? ++_k : --_k) {
+              trainz = TrainManager._TRAIN_ARRAY[i];
+              TrainManager._TRAINS_TO_SHOW_ARRAY.push(trainz);
+            }
+          } else {
+            console.log("ERROR I OPPRETTING AV TRAINS_TO_SHOW_ARRAY");
+          }
+          break;
+        } else {
+          counter++;
+        }
+      }
+      console.dir(TrainManager._TRAINS_TO_SHOW_ARRAY);
+      return onTrainListCompleteCallback(TrainManager._TRAINS_TO_SHOW_ARRAY);
     };
 
     TrainManager.prototype.getPossibleTrainList = function(trainStationID, flightObject) {

@@ -101,9 +101,11 @@ class window.FlightManager
           tmp = dataHolder['airportName']['@attributes']['name']
           airportMap[id] = tmp
           airportName = tmp
+
         catch error
           if errorCallback? then errorCallback('Feil ved henting av flyplass, bruker flyplass kode')
 
+        console.log(successCallback)
         if successCallback? then successCallback (airportName)
 
   @getInstance: () ->

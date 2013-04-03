@@ -141,20 +141,24 @@ class window.TransportationSelectionScreen
   onSearchButtonClick: () ->
     if currentFlight? and not $(uiSearchButton).prop('disabled') and currentTrainStationId != "0"
       $.mobile.loading 'show', { text: 'Henter toginformasjon', textVisible: true, theme: 'c', html: ""}
-      flightManager.getAirportNameById currentFlight.airport,
-        (airportName) ->
-          currentFlight.airport = airportName
-          trainManager.fetchTrains currentTrainStationId, currentFlight, (trainArray) ->
-            $.mobile.loading 'hide'
-            rs = new ResultScreen()
-            rs.showTrainInResultList(currentFlight, trainArray)
-        (error) ->
-          if errorReporter? and errorReporter not null then errorReporter 'Feilet ved henting av toginformasjon'
-          $.mobile.loading 'hide'
+      flightManager.getAirportNameById(currentFlight.airport, instance.onSearchButtonClickAirportSuccess, instance.onSearchButtonClickError)
 
-      #trainManager.fetchTrains currentTrainStationId, currentFlight, (trains) ->
-      #  rs = new ResultScreen()
-      #  rs.showTrainInResultList(currentFlight, trains)
+  onSearchButtonClickAirportSuccess: (airportName) ->
+    console.log(airportName)
+    currentFlight.airportName = airportName
+    trainManager.fetchTrains currentTrainStationId, currentFlight, instance.onSearchButtonClickTrainSuccess, instance.onSearchButtonClickError
+
+  onSearchButtonClickError: (message) ->
+    console.log(message)
+    if errorReporter? and errorReporter != null then errorReporter 'Feilet ved henting av toginformasjon'
+    $.mobile.loading 'hide'
+
+  onSearchButtonClickTrainSuccess: (trainArray) ->
+    rs = new ResultScreen()
+    rs.showTrainInResultList(currentFlight, trainArray)
+    $.mobile.loading 'hide'
+    window.location.hash = "#page2"
+
 
   @getInstance: () ->
     return instance
