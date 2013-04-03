@@ -8,6 +8,10 @@ class window.TransportationSelectionScreen
   uiBaggageDivId              = '#StartPageBaggageContent'
   uiBaggageCheckinId          = '#baggage_checkin'
   uiBaggageNonCheckinId       = '#baggage_nocheckin'
+  uiTrainDropDown             = '#trainDropDown'
+  uiTrainDropDownDiv          = '#trainDropDownDiv'
+  uiSearchButton              = '#searchButton'
+  uiClosestTrainStationButton = '#locateTrainStationButton'
 
   instance                    = new TransportationSelectionScreen()
   flightManager               = FlightManager.getInstance()
@@ -17,9 +21,22 @@ class window.TransportationSelectionScreen
 
   currentSearchValue          = "1"
   currentFlight               = null
+  currentTrainStationId       = "0"
 
   constructor: () ->
     FlightManager.getInstance().fetchFlights()
+    GeoLocationManager.getInstance().fetchLocation(false)
+
+  fillTrainDropDown: () ->
+    jQuery.getJSON "json/airporttrain_stations.json", (stations) ->
+      $(uiTrainDropDown).empty()
+      $(uiTrainDropDown).append('<option value="0" selected="selected">Velg togstasjon...</option>')
+      for stationInfo in stations
+        ts = new TrainStation()
+        ts._setInformation(stationInfo)
+        $(uiTrainDropDown).append('<option value="' + ts.id + '">' + ts.name + '</option>')
+      $('select').selectmenu('refresh', true)
+
 
   onFlightSearchChange: (newVal) ->
     if not newVal? or not flightManager?
@@ -61,7 +78,7 @@ class window.TransportationSelectionScreen
         instance.onFlightSelected (flight)
 
     catch error
-      #if errorReporter? or errorReporter not null then errorReporter('Feil ved søk på fly')
+      #if errorReporter? or errorReporter != null then errorReporter('Feil ved søk på fly')
       console.log(error)
 
   onFlightSelected: (flight) ->
@@ -71,7 +88,6 @@ class window.TransportationSelectionScreen
     @hideFlightSelection()
     @showBaggageSelection()
     @showTrainStationSelection()
-    @disableSearchButton()
     console.log("Current Flight Unique ID: " + flight.uniqueId)
 
     $(uiFlightSearchId).on 'keyup', () ->
@@ -95,17 +111,49 @@ class window.TransportationSelectionScreen
     $(uiFlightListId).listview('refresh')
 
   reset: () ->
+    $(uiSearchButton).off 'click'
+    $(uiClosestTrainStationButton).off 'click'
+    $(uiTrainDropDown).off 'change.stationChange'
+    console.log("aSD")
     currentSearchValue = "1"
     currentFlight = null
+    currentTrainStationId = "0"
+    @fillTrainDropDown()
     @hideBaggageSelection()
     @hideTrainStationSelection()
     @disableSearchButton()
     @showFlightSelection()
+    $(uiSearchButton).on 'click', @onSearchButtonClick
+    $(uiClosestTrainStationButton).on 'click', @onClosestTrainStationClick
+    $(uiTrainDropDown).on 'change.stationChange', @onTrainDropDownChange
 
-  onSearchButtonPressed: () ->
-    if currentFlight?
-      console.log(currentFlight)
-      trainManager.fetchTrains(2190400, currentFlight)
+  onClosestTrainStationClick: () ->
+
+
+  onTrainDropDownChange: () ->
+    if $(uiTrainDropDown).val() is "0"
+      instance.disableSearchButton()
+    else
+      currentTrainStationId = $(uiTrainDropDown).val()
+      instance.enableSearchButton()
+
+
+  onSearchButtonClick: () ->
+    if currentFlight? and not $(uiSearchButton).prop('disabled') and currentTrainStationId != "0"
+      $.mobile.loading 'show', { text: 'Henter toginformasjon', textVisible: true, theme: 'c', html: ""}
+      flightManager.getAirportNameById currentFlight.airport,
+        (airportName) ->
+          currentFlight.airport = airportName
+          trainManager.fetchTrains currentTrainStationId, currentFlight
+
+          $.mobile.loading 'hide'
+        (error) ->
+          if errorReporter? and errorReporter not null then errorReporter 'Feilet ved henting av toginformasjon'
+          $.mobile.loading 'hide'
+
+      #trainManager.fetchTrains currentTrainStationId, currentFlight, (trains) ->
+      #  rs = new ResultScreen()
+      #  rs.showTrainInResultList(currentFlight, trains)
 
   @getInstance: () ->
     return instance
@@ -117,10 +165,13 @@ class window.TransportationSelectionScreen
     $(uiBaggageDivId).hide()
 
   showTrainStationSelection: () ->
+    $(uiTrainDropDownDiv).show()
 
   hideTrainStationSelection: () ->
+    $(uiTrainDropDownDiv).hide()
 
   enableSearchButton: () ->
+    $(uiSearchButton).removeClass('ui-disabled')
 
   disableSearchButton: () ->
-
+    $(uiSearchButton).addClass('ui-disabled')

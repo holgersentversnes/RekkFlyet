@@ -125,7 +125,7 @@ Usage example:
       var deltaLatitude, deltaLongitude;
       deltaLatitude = this.latitude - latitude;
       deltaLongitude = this.longitude - longitude;
-      return Math.sqrt(Math.pow(deltaLatitude, 2), Math.pow(deltaLongitude, 2));
+      return Math.sqrt(Math.pow(deltaLatitude, 2) + Math.pow(deltaLongitude, 2));
     };
 
     return TrainStation;
