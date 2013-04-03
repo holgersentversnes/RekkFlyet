@@ -162,7 +162,6 @@
               errorCallback('Feil ved henting av flyplass, bruker flyplass kode');
             }
           }
-          console.log(successCallback);
           if (successCallback != null) {
             return successCallback(airportName);
           }

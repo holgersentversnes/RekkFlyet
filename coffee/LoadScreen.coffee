@@ -1,21 +1,28 @@
 class window.LoadScreen
-  notificationLabelId = '#LoadScreenContentLabel'
+  notificationLabelId = '#loadingText'
+  instance = new LoadScreen();
 
   start: () ->
     if window.navigator.onLine
+      GeoLocationManager.getInstance().fetchLocation(true)
+      TrainStationManager.getInstance().fetchAllTrainStations()
       flightManager = FlightManager.getInstance()
-      flightManager.fetchFlights(@onLoadComplete, @onLoadFail)
-      #FlightManager.getInstance().getAirportNameById('osl', @onLoadComplete, @onLoadFail)
-      #$.mobile.loading('show', text: 'Henter flyavganger.', textVisible: true, theme: 'c', html: "")
+      flightManager.fetchFlights(instance.onLoadComplete, instance.onLoadFail)
+
     else
-      #$.mobile.loading('show', text: 'Du er ikke koblet til internett', textVisible: true, theme: 'd', textonly: true)
+      $(notificationLabelId).val('Du må være koblet til internett for å bruke denne applikasjonen')
+
 
   onLoadComplete: (arr) ->
-    #$.mobile.loading('hide')
     console.dir(arr)
+    $.mobile.changePage("#transportationSelectionScreen", "fade");
+    #window.location.hash = "#transportationSelectionScreen"
+    TransportationSelectionScreen.getInstance().reset()
+    #TransportationSelectionScreen.getInstance().reset()
 
 
   onLoadFail: (err) ->
-    console.log('onLoadFail: ' + err)
-    #$.mobile.loading('hide')
-    #$(notificationLabelId).text('Feil ved henting av flyavganger')
+    $(notificationLabelId).val('Feil ved henting av flydata')
+
+  @getInstance: () ->
+    return instance

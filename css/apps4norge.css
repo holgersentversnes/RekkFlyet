@@ -78,3 +78,21 @@ table.flightSearchResultElement {
 #trainTable tbody tr:hover td {
     color: #009;
 }
+#splash * {
+    color: #666;
+    text-align: center;
+    font-size: 10pt;
+}
+
+#splash h1 {
+    font-size: 2em;
+    line-height: 3em;
+}
+
+#splash img {
+    width: 70%;
+}
+
+#splash p {
+    line-height: 3em;
+}
