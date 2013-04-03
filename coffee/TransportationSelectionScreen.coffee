@@ -81,6 +81,7 @@ class window.TransportationSelectionScreen
       console.log(error)
 
   onFlightSelected: (flight) ->
+    console.log("onFlightSelected")
     currentFlight = flight
     currentSearchValue = flight.flightId
     $(uiFlightSearchId).val(flight.flightId)
@@ -99,7 +100,6 @@ class window.TransportationSelectionScreen
     $(uiFlightSearchId).unbind('keyup')
     $(uiFlightSearchId).on 'keyup', (element) ->
       newValue = $(uiFlightSearchId).val()
-      #console.log(newValue)
       instance.onFlightSearchChange(newValue)
     instance.onFlightSearchChange("")
     currentFlight = null
